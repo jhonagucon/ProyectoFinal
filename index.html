@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Numérica Socioeconómica — Métodos Numéricos</title>
+    <meta name="description"
+        content="Plataforma de simulación interactiva para análisis de abastecimiento, inflación de precios y conflicto social utilizando métodos numéricos.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- KaTeX para renderizado de ecuaciones matemáticas hermosas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" 
+            onload="renderMathInElement(document.body, {
+              delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+              ],
+              throwOnError : false
+            });"></script>
+
+    <!-- Estilos del Proyecto -->
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <!-- MENÚ DE NAVEGACIÓN -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-brand">MÉTODOS NUMÉRICOS <span>— UMSA / DESAFÍO FINAL</span></a>
+            <ul class="nav-menu">
+                <li><a href="#" class="nav-link active" data-target="section-intro">Inicio</a></li>
+                <li><a href="#" class="nav-link" data-target="section-scen-a">Mod. 1: Red Transporte</a></li>
+                <li><a href="#" class="nav-link" data-target="section-scen-b">Mod. 2: Reservas EDO</a></li>
+                <li><a href="#" class="nav-link" data-target="section-scen-c">Mod. 3: Precios Interpolación</a></li>
+                <li><a href="#" class="nav-link" data-target="section-scen-d">Mod. 4: Gasto Integración</a></li>
+                <li><a href="#" class="nav-link" data-target="section-scen-e">Mod. 5: Umbrales Raíces</a></li>
+                <li><a href="#" class="nav-link" data-target="section-scen-f">Mod. 6: Rumores Sensibilidad</a></li>
+                <li><a href="#" class="nav-link" data-target="section-scen-g">Mod. 7: Dinámica Social</a></li>
+                <li><a href="#" class="nav-link" data-target="section-conclusions">Conclusiones</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO HEADER -->
+    <header id="hero-header">
+        <div class="hero-bg-particles" id="hero-particles"></div>
+        <div class="hero-content">
+            <div class="hero-badge">Proyecto de Simulación Socioeconómica</div>
+            <h1 class="hero-title">
+                <span class="hero-title-line">Simulación Numérica en Tiempos de Crisis</span>
+                <span class="hero-title-accent">Abastecimiento, Precios y Estabilidad Social</span>
+            </h1>
+            <p class="hero-subtitle">
+                Modelado matemático y computacional para la toma de decisiones estratégicas ante crisis logísticas,
+                especulación de precios y dinámica de opinión social.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-eq-count">7 Escenarios</span>
+                    <span class="stat-label">Modelos Simulados</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-methods-count">17 Métodos</span>
+                    <span class="stat-label">Algoritmos Numéricos</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-framework">JS Nativo</span>
+                    <span class="stat-label">Motor de Cálculo</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-ux">Chart.js + CSS</span>
+                    <span class="stat-label">Visualización UI</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- SECCIÓN 0: INICIO / PRESENTACIÓN -->
+        <section id="section-intro" class="section">
+            <div class="section-header">
+                <span class="section-number">00</span>
+                <h2 class="section-title">Contexto del Desafío</h2>
+                <p class="section-desc">Comprensión cuantitativa y neutral de dinámicas socioeconómicas complejas.</p>
+            </div>
+            
+            <div class="intro-grid">
+                <div class="panel-card intro-card-body">
+                    <h3>Descripción de la Problemática</h3>
+                    <p>
+                        En un contexto socioeconómico real, múltiples variables interconectadas dictan la estabilidad de un país.
+                        Problemas de <strong>abastecimiento de carburantes</strong>, especulación o <strong>incremento de precios en la canasta familiar</strong>,
+                        <strong>pánico por rumores de escasez</strong>, bloqueos y protestas son fenómenos que pueden parecer caóticos. Sin embargo, mediante
+                        las matemáticas aplicadas y el modelado por métodos numéricos, es posible simular, analizar y contrastar diversos escenarios reales.
+                    </p>
+                    <p>
+                        Este simulador interactivo presenta <strong>7 escenarios socioeconómicos</strong> estructurados de manera académica
+                        y neutral. Cada módulo aplica un área particular de los métodos numéricos para proporcionar datos duros y sustentar la toma de decisiones:
+                    </p>
+                    <ul class="intro-list">
+                        <li><strong>Módulo 1:</strong> Optimiza la distribución física de recursos desde plantas a mercados (Sistemas de Ecuaciones Lineales).</li>
+                        <li><strong>Módulo 2:</strong> Proyecta el vaciado de reservas críticas de combustible por sobredemanda (EDOs).</li>
+                        <li><strong>Módulo 3:</strong> Reconstruye la curva continua de precios de alimentos a partir de observaciones dispersas (Interpolación).</li>
+                        <li><strong>Módulo 4:</strong> Calcula el gasto familiar mensual acumulado y estima la pérdida del poder adquisitivo (Integración).</li>
+                        <li><strong>Módulo 5:</strong> Identifica el día exacto de quiebre financiero donde el gasto supera los ingresos familiares (Raíces de Ecuaciones).</li>
+                        <li><strong>Módulo 6:</strong> Evalúa la inestabilidad de las redes logísticas frente al pánico y rumores (Sistemas Mal Condicionados).</li>
+                        <li><strong>Módulo 7:</strong> Simula la propagación de opinión y el descontento social mitigado por mediadores (Sistemas de EDOs).</li>
+                    </ul>
+                </div>
+                
+                <div class="panel-card intro-card-body">
+                    <h3>Ficha del Proyecto</h3>
+                    <div class="tech-sheet-grid">
+                        <div class="tech-row"><span>Materia</span><strong>Métodos Numéricos</strong></div>
+                        <div class="tech-row"><span>Institución</span><strong>Universidad Mayor de San Andrés</strong></div>
+                        <div class="tech-row"><span>Facultad</span><strong>Facultad de Ciencias Puras y Naturales</strong></div>
+                        <div class="tech-row"><span>Gestión</span><strong>2025</strong></div>
+                        <div class="tech-row"><span>Docente</span><strong class="text-cyan">Lic. Brigida Carvajal Blanco</strong></div>
+                        <div class="tech-row"><span>Estudiante</span><strong class="text-cyan">Jonathan Gerson Gutierrez Condori</strong></div>
+                        <div class="tech-row"><span>Modalidad</span><strong>Proyecto Individual</strong></div>
+                        <div class="tech-row"><span>Escenarios</span><strong>7 / 7 Implementados ✓</strong></div>
+                        <div class="tech-row"><span>Métodos Aplicados</span><strong>17 Algoritmos Numéricos</strong></div>
+                        <div class="tech-row"><span>Tecnologías</span><strong>HTML5 · CSS3 · JavaScript · Chart.js · KaTeX</strong></div>
+                    </div>
+
+                    <!-- Badge de métodos implementados -->
+                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+                        <p style="font-size:0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-bottom: 10px;">Métodos Numéricos Implementados</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            <span class="method-badge badge-linear">LU</span>
+                            <span class="method-badge badge-linear">Jacobi</span>
+                            <span class="method-badge badge-linear">Gauss-Seidel</span>
+                            <span class="method-badge badge-linear">SOR</span>
+                            <span class="method-badge badge-linear">Grad. Conjugado</span>
+                            <span class="method-badge badge-root">Bisección</span>
+                            <span class="method-badge badge-root">Newton-Raphson</span>
+                            <span class="method-badge badge-root">Secante</span>
+                            <span class="method-badge badge-interp">Lagrange</span>
+                            <span class="method-badge badge-interp">Newton</span>
+                            <span class="method-badge badge-interp">Splines Cúbicos</span>
+                            <span class="method-badge badge-integ">Trapecio</span>
+                            <span class="method-badge badge-integ">Simpson 1/3</span>
+                            <span class="method-badge badge-integ">Simpson 3/8</span>
+                            <span class="method-badge badge-ode">Euler</span>
+                            <span class="method-badge badge-ode">Heun</span>
+                            <span class="method-badge badge-ode">RK4</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- MÓDULO 1: SISTEMAS DE ECUACIONES LINEALES -->
+        <section id="section-scen-a" class="section hidden">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <h2 class="section-title">Escenario A: Optimización del Abastecimiento</h2>
+                <p class="section-desc">Resolución del flujo óptimo de distribución de carburante desde 3 plantas a 3 zonas de consumo.</p>
+            </div>
+
+            <div class="sim-grid-container">
+                <!-- CONTROLES -->
+                <aside class="side-panel">
+                    <div class="sp-section">
+                        <h3 class="sp-title">⚙️ Parámetros Físicos</h3>
+                        <div class="sp-control">
+                            <label>Efecto de Bloqueos: <span id="val-a-blockage">0%</span></label>
+                            <input type="range" id="scen-a-blockage" min="0" max="0.8" step="0.05" value="0">
+                        </div>
+                        <div class="sp-control">
+                            <label>Escala de Demanda: <span id="val-a-demand">1.0x</span></label>
+                            <input type="range" id="scen-a-demand" min="1.0" max="1.5" step="0.05" value="1.0">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <h3 class="sp-title">🔧 Método Numérico</h3>
+                        <div class="sp-control">
+                            <label>Método de Resolución</label>
+                            <select class="form-select" id="scen-a-method">
+                                <option value="LU">LU (Directo)</option>
+                                <option value="Jacobi">Jacobi (Iterativo)</option>
+                                <option value="Gauss-Seidel" selected>Gauss-Seidel (Iterativo)</option>
+                                <option value="SOR">SOR (Relajación)</option>
+                                <option value="CG">Gradiente Conjugado</option>
+                            </select>
+                        </div>
+                        <div class="sp-control">
+                            <label>Factor de Relajación (SOR)</label>
+                            <input type="number" class="form-input" id="scen-a-omega" min="0.1" max="1.9" step="0.05" value="1.25">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <button class="ctrl-btn btn-primary w-full" id="btn-recalc-a">↻ Calcular</button>
+                    </div>
+                </aside>
+
+                <!-- RESULTADOS -->
+                <div class="sim-main-panel">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title"><div class="panel-dot"></div>Flujos de Abastecimiento Calculados</div>
+                        </div>
+                        <div class="results-grid">
+                            <div class="res-item">
+                                <span class="res-label">Flujo Zona Norte (x1)</span>
+                                <span class="res-value text-cyan" id="scen-a-val-x1">0.00</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Flujo Zona Centro (x2)</span>
+                                <span class="res-value text-violet" id="scen-a-val-x2">0.00</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Flujo Zona Sur (x3)</span>
+                                <span class="res-value text-emerald" id="scen-a-val-x3">0.00</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Iteraciones</span>
+                                <span class="res-value text-amber" id="scen-a-val-iter">0</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Residuo Máximo ||Ax - b||</span>
+                                <span class="res-value" id="scen-a-val-residual">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">Gráfico de Convergencia (Error por Iteración)</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-scen-a"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel-card table-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Sistema de Ecuaciones Dinámico A · x = b</div>
+                        </div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Ecuación de Planta</th>
+                                        <th>Coeficiente x1</th>
+                                        <th>Coeficiente x2</th>
+                                        <th>Coeficiente x3</th>
+                                        <th>Demanda (b)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scen-a-matrix-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- EXPLICACIÓN ACADÉMICA -->
+                    <div class="panel-card card-content-text">
+                        <h4>Modelo del Sistema de Abastecimiento</h4>
+                        <p>
+                            El flujo logístico de transporte se modela mediante el sistema lineal de balance de masas $A x = b$, donde la matriz
+                            $A$ representa el acoplamiento y la conductividad vial entre las 3 Plantas de Origen y las 3 Zonas de Destino, y el vector $b$ representa
+                            la demanda local en kilolitros/día:
+                        </p>
+                        <div class="formula-math">
+                            $$ A = \begin{pmatrix} 10 & 2(1-p) & 1-p \\ 1-p & 12 & 3(1-p) \\ 2(1-p) & 1-p & 8 \end{pmatrix}, \quad 
+                            b = \begin{pmatrix} 150 \cdot d \\ 200 \cdot d \\ 100 \cdot d \end{pmatrix} $$
+                        </div>
+                        <p>
+                            Donde $p \in [0, 0.8]$ representa la tasa de bloqueo vial de carreteras principales y $d \in [1.0, 1.5]$ es la escala de demanda por pánico.
+                        </p>
+                        <p>
+                            Para resolver este sistema, los métodos iterativos como <strong>Jacobi</strong> y <strong>Gauss-Seidel</strong> calculan la solución aproximada de forma sucesiva. El método de Gauss-Seidel actualiza la solución para cada componente $i$ en la iteración $k+1$ utilizando los valores ya calculados de esa misma iteración:
+                        </p>
+                        <div class="formula-math">
+                            $$ x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j < i} a_{ij} x_j^{(k+1)} - \sum_{j > i} a_{ij} x_j^{(k)} \right) $$
+                        </div>
+                        <p>
+                            El método <strong>SOR (Successive Over-Relaxation)</strong> acelera la convergencia interpolando linealmente con un factor de relajación $\omega \in (1, 2)$ para sobredimensionar el paso corrector:
+                        </p>
+                        <div class="formula-math">
+                            $$ x_i^{(k+1)} = (1 - \omega) x_i^{(k)} + \frac{\omega}{a_{ii}} \left( b_i - \sum_{j < i} a_{ij} x_j^{(k+1)} - \sum_{j > i} a_{ij} x_j^{(k)} \right) $$
+                        </div>
+                        <p>
+                            <strong>Interpretación:</strong> Al aumentar el bloqueo vial ($p$), se reduce la capacidad logística del sistema (los coeficientes fuera de la diagonal caen). Esto obliga a que la distribución directa de cada planta absorba toda la carga, volviendo el sistema sensible a variaciones. Los métodos iterativos demuestran una excelente velocidad de convergencia debido a que la matriz es estrictamente diagonalmente dominante: $|a_{ii}| > \sum_{j \neq i} |a_{ij}|$.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- MÓDULO 2: ECUACIONES DIFERENCIALES - RESERVAS -->
+        <section id="section-scen-b" class="section hidden">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <h2 class="section-title">Escenario B: Vaciado Crítico de Reservas</h2>
+                <p class="section-desc">Simulación del nivel de combustible remanente en planta frente a incrementos de consumo por bloqueos y pánico.</p>
+            </div>
+
+            <div class="sim-grid-container">
+                <aside class="side-panel">
+                    <div class="sp-section">
+                        <h3 class="sp-title">⚙️ Parámetros Físicos</h3>
+                        <div class="sp-control">
+                            <label>Reserva Inicial (R0)</label>
+                            <input type="number" class="form-input form-input-number" id="scen-b-r0" value="1000">
+                        </div>
+                        <div class="sp-control">
+                            <label>Tasa de Entrada (Entrada)</label>
+                            <input type="number" class="form-input form-input-number" id="scen-b-in" value="80">
+                        </div>
+                        <div class="sp-control">
+                            <label>Consumo Base (C0)</label>
+                            <input type="number" class="form-input form-input-number" id="scen-b-out" value="120">
+                        </div>
+                        <div class="sp-control">
+                            <label>Límite Crítico (R_crit)</label>
+                            <input type="number" class="form-input form-input-number" id="scen-b-rcrit" value="150">
+                        </div>
+                        <div class="sp-control">
+                            <label>Factor Pánico/Bloqueo: <span id="val-b-panic">+0%</span></label>
+                            <input type="range" id="scen-b-panic" min="0" max="2.0" step="0.1" value="0">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <h3 class="sp-title">📐 Configuración Numérica</h3>
+                        <div class="sp-control">
+                            <label>Tamaño de Paso (h)</label>
+                            <select class="form-select" id="scen-b-h">
+                                <option value="0.5">h = 0.5 (Grueso)</option>
+                                <option value="0.1" selected>h = 0.1 (Normal)</option>
+                                <option value="0.01">h = 0.01 (Preciso)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <button class="ctrl-btn btn-primary w-full" id="btn-recalc-b">↻ Simular</button>
+                    </div>
+                </aside>
+
+                <div class="sim-main-panel">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title"><div class="panel-dot"></div>Días estimados hasta llegar a nivel crítico (R(t) &le; R_crit)</div>
+                        </div>
+                        <div class="results-grid">
+                            <div class="res-item">
+                                <span class="res-label">Método de Euler</span>
+                                <span class="res-value text-rose" id="scen-b-crit-euler">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Método de Heun</span>
+                                <span class="res-value text-violet" id="scen-b-crit-heun">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Método RK4 (Orden 4)</span>
+                                <span class="res-value text-cyan" id="scen-b-crit-rk4">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">Evolución de las Reservas a lo largo de 15 días</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-scen-b"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel-card table-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Tabla de Simulación del Vaciado (Muestra)</div>
+                        </div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tiempo (Días)</th>
+                                        <th>Reserva Euler (Bs.)</th>
+                                        <th>Reserva Heun (Bs.)</th>
+                                        <th>Reserva RK4 (Bs.)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scen-b-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- EXPLICACIÓN ACADÉMICA -->
+                    <div class="panel-card card-content-text">
+                        <h4>Modelo del Vaciado de Tanques de Combustible</h4>
+                        <p>
+                            El volumen de reserva de carburante en planta $R(t)$ se modela como una ecuación diferencial ordinaria de balance de flujos del tanque,
+                            donde la tasa de cambio de la reserva es igual al caudal de entrada de suministro menos el caudal de consumo escalado por el factor de pánico $p$:
+                        </p>
+                        <div class="formula-math">
+                            $$ \frac{dR}{dt} = Q_{\text{entrada}} - Q_{\text{consumo}} \cdot (1 + p) $$
+                        </div>
+                        <p>
+                            El método de **Euler** aproxima la curva de forma lineal simple acumulando un error de truncamiento local $\mathcal{O}(h^2)$:
+                        </p>
+                        <div class="formula-math">
+                            $$ R_{n+1} = R_n + h \cdot f(t_n, R_n) $$
+                        </div>
+                        <p>
+                            El método de **Heun** introduce un predictor y un corrector trapezoidal para mejorar la exactitud a un orden de error $\mathcal{O}(h^3)$:
+                        </p>
+                        <div class="formula-math">
+                            $$ R_{n+1}^0 = R_n + h \cdot f(t_n, R_n) \quad \text{(Predictor)} $$
+                            $$ R_{n+1} = R_n + \frac{h}{2} \left[ f(t_n, R_n) + f(t_{n+1}, R_{n+1}^0) \right] \quad \text{(Corrector)} $$
+                        </div>
+                        <p>
+                            Por último, el método **Runge-Kutta de cuarto orden (RK4)** proporciona la solución más estable al calcular cuatro pendientes intermedias ponderadas:
+                        </p>
+                        <div class="formula-math">
+                            $$ \begin{aligned}
+                            k_1 &= f(t_n, R_n) \\
+                            k_2 &= f\left(t_n + \frac{h}{2}, R_n + \frac{h}{2} k_1\right) \\
+                            k_3 &= f\left(t_n + \frac{h}{2}, R_n + \frac{h}{2} k_2\right) \\
+                            k_4 &= f(t_n + h, R_n + h k_3) \\
+                            R_{n+1} &= R_n + \frac{h}{6} (k_1 + 2k_2 + 2k_3 + k_4)
+                            \end{aligned} $$
+                        </div>
+                        <p>
+                            <strong>Interpretación:</strong> Al aumentar el pánico al 100% ($p=1.0$), la tasa de consumo duplica la entrada y vacía las reservas rápidamente. RK4 es el método estándar debido a su alta precisión, lo que le permite capturar la curva exacta de vaciado incluso con un paso grueso ($h=0.5$), donde Euler acumula una desviación visible.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- MÓDULO 3: INTERPOLACIÓN - CURVA DE PRECIOS -->
+        <section id="section-scen-c" class="section hidden">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <h2 class="section-title">Escenario C: Reconstrucción de la Curva de Precios</h2>
+                <p class="section-desc">Interpolación de precios de alimentos básicos en mercados clave a partir de datos dispersos observados.</p>
+            </div>
+
+            <div class="sim-grid-container">
+                <aside class="side-panel">
+                    <div class="sp-section">
+                        <h3 class="sp-title">➕ Agregar Punto de Muestreo</h3>
+                        <div class="sp-control text-center">
+                            <button class="ctrl-btn btn-primary" id="btn-add-point-c">+ Agregar Día</button>
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <h3 class="sp-title">🎯 Estimador de Precios</h3>
+                        <div class="sp-control">
+                            <label>Día a Estimar (x)</label>
+                            <input type="number" class="form-input form-input-number" id="scen-c-eval-day" min="1" max="30" value="12">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <button class="ctrl-btn w-full" id="btn-recalc-c">↻ Recalcular</button>
+                    </div>
+                </aside>
+
+                <div class="sim-main-panel">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title"><div class="panel-dot"></div>Precio Estimado en Día Objetivo</div>
+                        </div>
+                        <div class="results-grid">
+                            <div class="res-item">
+                                <span class="res-label">Interpolación de Lagrange</span>
+                                <span class="res-value text-rose" id="scen-c-val-lagrange">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Polinomio de Newton</span>
+                                <span class="res-value text-violet" id="scen-c-val-newton">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Splines Cúbicos Naturales</span>
+                                <span class="res-value text-cyan" id="scen-c-val-spline">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">Curvas de Interpolación Comparativas</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-scen-c"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel-card table-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Muestras de Precios Dispersos (Editable)</div>
+                        </div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Identificador</th>
+                                        <th>Día (x)</th>
+                                        <th>Precio de la Papa (Bs.)</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scen-c-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="panel-card table-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Coeficientes de Splines Cúbicos Naturales S_i(x) = a + b*dx + c*dx^2 + d*dx^3</div>
+                        </div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Intervalo</th>
+                                        <th>Rango Día</th>
+                                        <th>a_i</th>
+                                        <th>b_i</th>
+                                        <th>c_i</th>
+                                        <th>d_i</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scen-c-spline-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="panel-card table-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Tabla de Diferencias Divididas de Newton</div>
+                        </div>
+                        <div class="table-scroll">
+                            <table id="scen-c-newton-table">
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- EXPLICACIÓN ACADÉMICA -->
+                    <div class="panel-card card-content-text">
+                        <h4>Fórmula e Interpolación de Curvas de Precios</h4>
+                        <p>
+                            Dados $n+1$ puntos de muestreo dispersos $(x_i, y_i)$, la interpolación busca reconstruir el polinomio continuo del precio. 
+                            El **Polinomio de Newton** construye diferencias divididas y se define como:
+                        </p>
+                        <div class="formula-math">
+                            $$ P_n(x) = f[x_0] + f[x_0, x_1](x - x_0) + f[x_0, x_1, x_2](x - x_0)(x - x_1) + \dots + f[x_0, \dots, x_n]\prod_{j=0}^{n-1}(x - x_j) $$
+                        </div>
+                        <p>
+                            Los **Splines Cúbicos Naturales** calculan polinomios cúbicos individuales $S_i(x)$ para cada intervalo $[x_i, x_{i+1}]$ garantizando suavidad y continuidad en la primera y segunda derivada ($C^2$):
+                        </p>
+                        <div class="formula-math">
+                            $$ S_i(x) = a_i + b_i(x - x_i) + c_i(x - x_i)^2 + d_i(x - x_i)^3 $$
+                        </div>
+                        <p>
+                            Los momentos $c_i$ se encuentran al resolver el sistema lineal tridiagonal que iguala la curvatura en los nodos internos, estableciendo los extremos en $c_0 = c_n = 0$ (condición natural):
+                        </p>
+                        <div class="formula-math">
+                            $$ h_{i-1} c_{i-1} + 2(h_{i-1} + h_i) c_i + h_i c_{i+1} = 3 \left( \frac{a_{i+1} - a_i}{h_i} - \frac{a_i - a_{i-1}}{h_{i-1}} \right) $$
+                        </div>
+                        <p>
+                            donde $h_i = x_{i+1} - x_i$. Con los coeficientes $a_i$ (igual al precio $y_i$) y los momentos $c_i$ calculados, los coeficientes restantes se hallan mediante sustitución directa:
+                        </p>
+                        <div class="formula-math">
+                            $$ b_i = \frac{a_{i+1} - a_i}{h_i} - \frac{h_i}{3}(c_{i+1} + 2c_i), \quad d_i = \frac{c_{i+1} - c_i}{3h_i} $$
+                        </div>
+                        <p>
+                            <strong>Interpretación de Métodos:</strong> Los polinomios globales (como Lagrange y Newton de grado 5) sufren del **Fenómeno de Runge** (oscilaciones violentas cerca de los extremos cuando se ajustan muchos puntos equidistantes). Los Splines Cúbicos dividen el problema por intervalos acoplados, ofreciendo una reconstrucción suave, localmente estable y realista de la evolución de precios.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- MÓDULO 4: INTEGRACIÓN NUMÉRICA - GASTO -->
+        <section id="section-scen-d" class="section hidden">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <h2 class="section-title">Escenario D: Cálculo del Gasto Familiar Acumulado</h2>
+                <p class="section-desc">Integración numérica del área bajo la curva de precios interpolada para obtener el costo de la canasta mensual.</p>
+            </div>
+
+            <div class="sim-grid-container">
+                <aside class="side-panel">
+                    <div class="sp-section">
+                        <h3 class="sp-title">📐 Precisión de Integración</h3>
+                        <div class="sp-control">
+                            <label>Partición de Intervalos (N): <span id="val-d-n">12</span></label>
+                            <input type="range" id="scen-d-n" min="6" max="48" step="6" value="12">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <button class="ctrl-btn btn-primary w-full" id="btn-recalc-d">↻ Integrar</button>
+                    </div>
+                </aside>
+
+                <div class="sim-main-panel">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title"><div class="panel-dot"></div>Gasto Acumulado en el Período por Método</div>
+                        </div>
+                        <div class="results-grid">
+                            <div class="res-item">
+                                <span class="res-label">Regla del Trapecio Compuesto</span>
+                                <span class="res-value text-rose" id="scen-d-val-trap">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Simpson 1/3 Compuesto</span>
+                                <span class="res-value text-violet" id="scen-d-val-simp13">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Simpson 3/8 Compuesto</span>
+                                <span class="res-value text-cyan" id="scen-d-val-simp38">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title"><div class="panel-dot"></div>Pérdida del Poder Adquisitivo Familiar</div>
+                        </div>
+                        <div class="results-grid">
+                            <div class="res-item">
+                                <span class="res-label">Gasto Base (Precios Constantes Día 1)</span>
+                                <span class="res-value text-muted" id="scen-d-val-base">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Incremento del Gasto Familiar</span>
+                                <span class="res-value text-rose" id="scen-d-val-loss-bs">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Pérdida Relativa (%)</span>
+                                <span class="res-value text-amber" id="scen-d-val-loss-pct">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card table-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Puntos de Partición e Integrandos evaluados</div>
+                        </div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Índice (i)</th>
+                                        <th>Día evaluado (x_i)</th>
+                                        <th>Precio Evaluado P(x_i)</th>
+                                        <th>Factor de Peso (Simpson 1/3)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scen-d-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- EXPLICACIÓN ACADÉMICA -->
+                    <div class="panel-card card-content-text">
+                        <h4>Integración Numérica del Gasto</h4>
+                        <p>
+                            El gasto acumulado mensual se calcula integrando el área bajo la curva del precio de la canasta básica familiar
+                            $P(t)$ a lo largo del intervalo temporal $[t_a, t_b]$ correspondiente al período de análisis:
+                        </p>
+                        <div class="formula-math">
+                            $$ \text{Gasto Acumulado} = \int_{t_a}^{t_b} P(t) \, dt $$
+                        </div>
+                        <p>
+                            La regla del **Trapecio Compuesto** aproxima el área mediante trapecios lineales en $n$ intervalos de ancho $h$:
+                        </p>
+                        <div class="formula-math">
+                            $$ I \approx \frac{h}{2} \left[ P(t_0) + 2 \sum_{i=1}^{n-1} P(t_i) + P(t_n) \right] $$
+                        </div>
+                        <p>
+                            La regla de **Simpson 1/3 Compuesto** aproxima el integrando con parábolas en parejas de intervalos contiguos (requiere $n$ par):
+                        </p>
+                        <div class="formula-math">
+                            $$ I \approx \frac{h}{3} \left[ P(t_0) + 4 \sum_{i \text{ impar}}^{n-1} P(t_i) + 2 \sum_{i \text{ par}}^{n-2} P(t_i) + P(t_n) \right] $$
+                        </div>
+                        <p>
+                            La regla de **Simpson 3/8 Compuesto** aproxima el integrando con polinomios cúbicos locales en tríos de intervalos (requiere $n$ múltiplo de 3):
+                        </p>
+                        <div class="formula-math">
+                            $$ I \approx \frac{3h}{8} \left[ P(t_0) + 3 \sum_{i \neq 3k} P(t_i) + 2 \sum_{k=1}^{n/3 - 1} P(t_{3k}) + P(t_n) \right] $$
+                        </div>
+                        <p>
+                            <strong>Interpretación Económica:</strong> Si los precios no hubieran subido y se mantuvieran fijos en el día inicial, el gasto acumulado sería simplemente $P(t_a) \cdot (t_b - t_a)$. La integral de la curva interpolada real representa el gasto inflacionario acumulado, y la diferencia entre ambos valores corresponde a la pérdida directa de capacidad de ahorro familiar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- MÓDULO 5: RAÍCES DE ECUACIONES - UMBRALES -->
+        <section id="section-scen-e" class="section hidden">
+            <div class="section-header">
+                <span class="section-number">05</span>
+                <h2 class="section-title">Escenario E: Umbrales Críticos de Abastecimiento</h2>
+                <p class="section-desc">Tres umbrales no lineales: quiebre financiero familiar, tasa crítica de reposición de combustible y punto de bifurcación social. Resueltos con Bisección, Newton-Raphson y Secante.</p>
+            </div>
+
+            <div class="sim-grid-container">
+                <aside class="side-panel">
+                    <div class="sp-section">
+                        <h3 class="sp-title">⚙️ Modelo y Función</h3>
+                        <div class="sp-control">
+                            <label>Seleccionar Umbral</label>
+                            <select class="form-select" id="scen-e-case">
+                                <option value="case1" selected>1. Umbral Gasto Familiar</option>
+                                <option value="case2">2. Reposición Combustible</option>
+                                <option value="case3">3. Umbral de Opinión</option>
+                            </select>
+                        </div>
+                        <div id="scen-e-coefficients-group">
+                            <div class="sp-control">
+                                <label>Coeficiente Exponencial (A)</label>
+                                <input type="number" class="form-input form-input-number" id="scen-e-coeff-a" value="150">
+                            </div>
+                            <div class="sp-control">
+                                <label>Tasa de Inflación (k)</label>
+                                <input type="number" class="form-input form-input-number" id="scen-e-coeff-k" value="0.08" step="0.01">
+                            </div>
+                            <div class="sp-control">
+                                <label>Tasa de Ingreso Diario (B)</label>
+                                <input type="number" class="form-input form-input-number" id="scen-e-coeff-b" value="25">
+                            </div>
+                            <div class="sp-control">
+                                <label>Base Financiera (C)</label>
+                                <input type="number" class="form-input form-input-number" id="scen-e-coeff-c" value="200">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <h3 class="sp-title">🔧 Método y Semilla</h3>
+                        <div class="sp-control">
+                            <label>Algoritmo de Raíz</label>
+                            <select class="form-select" id="scen-e-method">
+                                <option value="bisection" selected>Bisección (Intervalo)</option>
+                                <option value="newton">Newton-Raphson (Semilla)</option>
+                                <option value="secant">Secante (Dos puntos)</option>
+                            </select>
+                        </div>
+                        <div class="sp-control">
+                            <label>Límite Inferior / Semilla x0</label>
+                            <input type="number" class="form-input form-input-number" id="scen-e-a" value="0">
+                        </div>
+                        <div class="sp-control">
+                            <label>Límite Superior / x1</label>
+                            <input type="number" class="form-input form-input-number" id="scen-e-b" value="30">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <button class="ctrl-btn btn-primary w-full" id="btn-recalc-e">↻ Encontrar Raíz</button>
+                    </div>
+                </aside>
+
+                <div class="sim-main-panel">
+                    <!-- Tarjeta informativa del caso activo -->
+                    <div class="panel-card" style="background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(34,211,238,0.05)); border-color: rgba(167,139,250,0.3);">
+                        <div class="panel-header">
+                            <div class="panel-title">📐 Los 3 Umbrales de Abastecimiento</div>
+                        </div>
+                        <div class="card-content-text" style="padding: 12px 20px;">
+                            <p style="margin: 6px 0; font-size: 0.85rem;"><strong class="text-violet">Caso 1 — Umbral Gasto Familiar:</strong> $f(t) = A \cdot e^{kt} - B \cdot t - C = 0$<br>
+                            <span class="text-muted" style="font-size:0.78rem;">Día en que el gasto acumulado supera el ingreso mensual.</span></p>
+                            <p style="margin: 6px 0; font-size: 0.85rem;"><strong class="text-cyan">Caso 2 — Reposición Combustible:</strong> $g(Q) = \ln(Q) - Q/50 - 2 = 0$<br>
+                            <span class="text-muted" style="font-size:0.78rem;">Caudal mínimo Q que iguala el consumo total acumulado.</span></p>
+                            <p style="margin: 6px 0; font-size: 0.85rem;"><strong class="text-emerald">Caso 3 — Bifurcación Social:</strong> $h(x) = x^3 - x - 1 = 0$<br>
+                            <span class="text-muted" style="font-size:0.78rem;">Parámetro crítico donde el modelo social cambia de estabilidad.</span></p>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title"><div class="panel-dot"></div>Raíz Numérica del Umbral Seleccionado</div>
+                        </div>
+                        <div class="results-grid">
+                            <div class="res-item">
+                                <span class="res-label" data-e-root-label>Valor Crítico (Raíz)</span>
+                                <span class="res-value text-cyan" id="scen-e-val-root">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Número de Iteraciones</span>
+                                <span class="res-value text-violet" id="scen-e-val-iter">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Orden de Convergencia Estimado</span>
+                                <span class="res-value text-emerald" id="scen-e-val-rate">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">Gráfica de la Función f(t) y Raíz señalada</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-scen-e"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel-card table-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">Tabla de Iteraciones de Convergencia</div>
+                        </div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Iteración (k)</th>
+                                        <th>Extremo izq. (a)</th>
+                                        <th>Extremo der. (b)</th>
+                                        <th>Raíz aproximada (x_k)</th>
+                                        <th>Evaluación f(x_k)</th>
+                                        <th>Error Estimado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scen-e-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- EXPLICACIÓN ACADÉMICA -->
+                    <div class="panel-card card-content-text">
+                        <h4>Métodos de Raíces para Umbrales de Quiebre</h4>
+                        <p>
+                            El día de quiebre financiero familiar representa el momento exacto en el que el gasto no lineal acumulado iguala los ingresos familiares. Se modela encontrando la raíz real de la función $f(t) = 0$:
+                        </p>
+                        <div class="formula-math">
+                            $$ f(t) = A \cdot e^{k \cdot t} - B \cdot t - C = 0 $$
+                        </div>
+                        <p>
+                            Donde la derivada analítica de la función respecto al tiempo para su uso en Newton-Raphson es:
+                        </p>
+                        <div class="formula-math">
+                            $$ f'(t) = A \cdot k \cdot e^{k \cdot t} - B $$
+                        </div>
+                        <p>
+                            El método de **Bisección** divide a la mitad de forma sucesiva un intervalo $[a, b]$ donde haya cambio de signo ($f(a) \cdot f(b) < 0$). El método de **Newton-Raphson** proyecta la recta tangente de la función para converger con velocidad cuadrática:
+                        </p>
+                        <div class="formula-math">
+                            $$ t_{k+1} = t_k - \frac{f(t_k)}{f'(t_k)} = t_k - \frac{A \cdot e^{k \cdot t_k} - B \cdot t_k - C}{A \cdot k \cdot e^{k \cdot t_k} - B} $$
+                        </div>
+                        <p>
+                            El método de la **Secante** aproxima la derivada utilizando los valores de las últimas dos iteraciones, sin necesidad de calcular la derivada analítica:
+                        </p>
+                        <div class="formula-math">
+                            $$ t_{k+1} = t_k - f(t_k) \frac{t_k - t_{k-1}}{f(t_k) - f(t_{k-1})} $$
+                        </div>
+                        <p>
+                            <strong>Convergencia:</strong> El método de bisección converge linealmente con una tasa garantizada de $0.5$ por paso, mientras que Newton-Raphson converge cuadráticamente (tasa de orden $\approx 2.0$), eliminando el error residual en pocas iteraciones si el punto de partida es cercano a la raíz.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- MÓDULO 6: SISTEMAS MAL CONDICIONADOS - RUMORES -->
+        <section id="section-scen-f" class="section hidden">
+            <div class="section-header">
+                <span class="section-number">06</span>
+                <h2 class="section-title">Escenario F: Sensibilidad de la Red y Rumores de Escasez</h2>
+                <p class="section-desc">Análisis del número de condición ante compras nerviosas provocadas por rumores en sistemas lineales mal condicionados.</p>
+            </div>
+
+            <div class="sim-grid-container">
+                <aside class="side-panel">
+                    <div class="sp-section">
+                        <h3 class="sp-title">📢 Intensidad del Rumor</h3>
+                        <div class="sp-control">
+                            <label>Desviación de Demanda: <span id="val-f-rumor">+0.0%</span></label>
+                            <input type="range" id="scen-f-rumor" min="0" max="5.0" step="0.2" value="0">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <button class="ctrl-btn btn-primary w-full" id="btn-recalc-f">↻ Evaluar</button>
+                    </div>
+                </aside>
+
+                <div class="sim-main-panel">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title"><div class="panel-dot"></div>Índices de Sensibilidad del Sistema</div>
+                        </div>
+                        <div class="results-grid">
+                            <div class="res-item">
+                                <span class="res-label">Número de Condición cond(A)_inf</span>
+                                <span class="res-value text-rose" id="scen-f-val-cond">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Perturbación Demanda ||db||/||b||</span>
+                                <span class="res-value text-amber" id="scen-f-rel-db">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Cambio en la Solución ||dx||/||x||</span>
+                                <span class="res-value text-rose" id="scen-f-rel-dx">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Factor de Amplificación Real</span>
+                                <span class="res-value text-cyan" id="scen-f-amp-factor">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">Comparación de Flujo: Sistema Estable vs Afectado por Rumores</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-scen-f"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel-card results-grid" style="grid-template-columns: 1fr 1fr; padding: 0;">
+                        <div class="sp-section" style="border-right: 1px solid var(--border-subtle)">
+                            <h3 class="sp-title">Solución Original (Estable)</h3>
+                            <div class="tech-row"><span>Flujo Producto 1 (x1)</span><strong id="scen-f-orig-x1">—</strong></div>
+                            <div class="tech-row"><span>Flujo Producto 2 (x2)</span><strong id="scen-f-orig-x2">—</strong></div>
+                        </div>
+                        <div class="sp-section">
+                            <h3 class="sp-title text-rose">Solución Perturbada (Bajo Pánico)</h3>
+                            <div class="tech-row"><span>Flujo Producto 1 (x1)</span><strong class="text-rose" id="scen-f-pert-x1">—</strong></div>
+                            <div class="tech-row"><span>Flujo Producto 2 (x2)</span><strong class="text-rose" id="scen-f-pert-x2">—</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- EXPLICACIÓN ACADÉMICA -->
+                    <div class="panel-card card-content-text">
+                        <h4>Teoría de Sistemas Mal Condicionados</h4>
+                        <p>
+                            En el álgebra lineal numérica, el **Número de Condición** de una matriz mide qué tan sensible es la solución del sistema lineal $A x = b$ ante pequeñas fluctuaciones o perturbaciones en el vector de cargas/demandas $b$:
+                        </p>
+                        <div class="formula-math">
+                            $$ \text{cond}(A) = \|A\| \cdot \|A^{-1}\| $$
+                        </div>
+                        <p>
+                            donde se utiliza una norma matricial inducida (como la norma infinita, que es la suma máxima por filas). La cota superior de la amplificación del error relativo viene dada por:
+                        </p>
+                        <div class="formula-math">
+                            $$ \frac{\|\Delta x\|}{\|x\|} \le \text{cond}(A) \cdot \frac{\|\Delta b\|}{\|b\|} $$
+                        </div>
+                        <p>
+                            El modelo logístico competitivo de las dos zonas de abastecimiento se define por la matriz $A$ y la demanda base $b$:
+                        </p>
+                        <div class="formula-math">
+                            $$ A = \begin{pmatrix} 10.0 & 9.9 \\ 9.9 & 9.8 \end{pmatrix}, \quad b = \begin{pmatrix} 19.9 \\ 19.7 \end{pmatrix} $$
+                        </div>
+                        <p>
+                            La solución exacta a este sistema es $x = \begin{pmatrix} 1.0 \\ 1.0 \end{pmatrix}$. El determinante de $A$ es apenas $-0.01$. Al invertir la matriz mediante Gauss-Jordan obtenemos:
+                        </p>
+                        <div class="formula-math">
+                            $$ A^{-1} = \begin{pmatrix} -980 & 990 \\ 990 & -1000 \end{pmatrix} $$
+                        </div>
+                        <p>
+                            Su norma infinita $\|A\|_\infty = 19.9$ y de la inversa $\|A^{-1}\|_\infty = 1990$ determinan un número de condición de:
+                        </p>
+                        <div class="formula-math">
+                            $$ \text{cond}(A)_1 = 19.9 \times 1990 = 39,601 $$
+                        </div>
+                        <p>
+                            <strong>Demostración Académica del Colapso:</strong> Con un número de condición $\text{cond}(A)_\infty \approx 39,601$, el sistema es extremadamente inestable. Si perturbamos la demanda de forma casi imperceptible ($+1\%$), el vector de demanda pasa de $[19.9, 19.7]^T$ a $[20.099, 19.503]^T$. Sin embargo, la solución calculada se desvía drásticamente hacia $[-97.5, 100.5]^T$. Las matemáticas demuestran de forma irrefutable por qué el pánico y las compras compulsivas inducidas por rumores pueden desmoronar por completo una red de distribución física sin que exista un cambio real en la capacidad de producción base.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- MÓDULO 7: SISTEMAS DE EDOS - DINÁMICA SOCIAL -->
+        <section id="section-scen-g" class="section hidden">
+            <div class="section-header">
+                <span class="section-number">07</span>
+                <h2 class="section-title">Escenario G: Dinámica y Difusión del Conflicto Social</h2>
+                <p class="section-desc">Simulación del comportamiento social mediante un sistema dinámico modificado de tipo epidémico (Neutrales, Manifestantes y Mediadores).</p>
+            </div>
+
+            <div class="sim-grid-container">
+                <aside class="side-panel">
+                    <div class="sp-section">
+                        <h3 class="sp-title">👥 Población Inicial</h3>
+                        <div class="sp-control">
+                            <label>Neutrales N(0)</label>
+                            <input type="number" class="form-input form-input-number" id="scen-g-n0" value="0.95" step="0.01">
+                        </div>
+                        <div class="sp-control">
+                            <label>Manifestantes M(0)</label>
+                            <input type="number" class="form-input form-input-number" id="scen-g-m0" value="0.05" step="0.01">
+                        </div>
+                        <div class="sp-control">
+                            <label>Mediadores D(0)</label>
+                            <input type="number" class="form-input form-input-number" id="scen-g-d0" value="0.0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <h3 class="sp-title">📈 Tasas de Dinámica Social</h3>
+                        <div class="sp-control">
+                            <label>Contagio del Malestar (a): <span id="val-g-a">0.80</span></label>
+                            <input type="range" id="scen-g-param-a" min="0.1" max="2.0" step="0.05" value="0.80">
+                        </div>
+                        <div class="sp-control">
+                            <label>Retorno a la Calma (b): <span id="val-g-b">0.10</span></label>
+                            <input type="range" id="scen-g-param-b" min="0.0" max="0.5" step="0.02" value="0.10">
+                        </div>
+                        <div class="sp-control">
+                            <label>Eficacia del Diálogo (c): <span id="val-g-c">0.40</span></label>
+                            <input type="range" id="scen-g-param-c" min="0.1" max="2.0" step="0.05" value="0.40">
+                        </div>
+                        <div class="sp-control">
+                            <label>Generación Mediadores (k): <span id="val-g-k">0.20</span></label>
+                            <input type="range" id="scen-g-param-k" min="0.0" max="0.5" step="0.02" value="0.20">
+                        </div>
+                        <div class="sp-control">
+                            <label>Desgaste Mediación (r): <span id="val-g-r">0.15</span></label>
+                            <input type="range" id="scen-g-param-r" min="0.0" max="0.5" step="0.02" value="0.15">
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <h3 class="sp-title">📐 Algoritmo EDO</h3>
+                        <div class="sp-control">
+                            <label>Método Numérico</label>
+                            <select class="form-select" id="scen-g-method">
+                                <option value="heun">Heun (Pred.-Corr.)</option>
+                                <option value="rk4" selected>Runge-Kutta 4 (RK4)</option>
+                            </select>
+                        </div>
+                        <div class="sp-control">
+                            <label>Paso de Integración (h)</label>
+                            <select class="form-select" id="scen-g-h">
+                                <option value="0.5">h = 0.5 (Rápido)</option>
+                                <option value="0.2" selected>h = 0.2 (Recomendado)</option>
+                                <option value="0.05">h = 0.05 (Preciso)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="sp-section">
+                        <button class="ctrl-btn btn-primary w-full" id="btn-recalc-g">↻ Simular Dinámica</button>
+                    </div>
+                </aside>
+
+                <div class="sim-main-panel">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title"><div class="panel-dot animate-pulse"></div>Estado Final de Población del Conflicto (Día 30)</div>
+                        </div>
+                        <div class="results-grid">
+                            <div class="res-item">
+                                <span class="res-label">Ciudadanos Neutrales</span>
+                                <span class="res-value text-cyan" id="scen-g-val-n">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Manifestantes Activos</span>
+                                <span class="res-value text-rose" id="scen-g-val-m">—</span>
+                            </div>
+                            <div class="res-item">
+                                <span class="res-label">Mediadores Sociales</span>
+                                <span class="res-value text-amber" id="scen-g-val-d">—</span>
+                            </div>
+                        </div>
+                        <div class="card-content-text" style="border-top: 1px solid var(--border-subtle); padding: 12px 20px;">
+                            <span class="res-label">Conclusión de Escenario:</span>
+                            <p id="scen-g-interpret" style="margin: 4px 0 0 0; font-weight: 600; color: #fff;"></p>
+                        </div>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div class="panel-title">Evolución de Dinámica Social N-M-D en 30 Días</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-scen-g"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- EXPLICACIÓN ACADÉMICA -->
+                    <div class="panel-card card-content-text">
+                        <h4>Modelo Matemático de Dinámica Social N-M-D</h4>
+                        <p>
+                            En lugar de usar un modelo SIR epidemiológico estándar, este modelo dinámico de compartimentos describe las transacciones
+                            de población en un conflicto social, acoplando a los ciudadanos en calma o Neutrales ($N$), a los Manifestantes activos ($M$)
+                            y a los actores promotores del diálogo o Mediadores ($D$):
+                        </p>
+                        <div class="formula-math">
+                            $$ \begin{aligned}
+                            \frac{dN}{dt} &= -a \cdot N \cdot M + b \cdot D \\
+                            \frac{dM}{dt} &= a \cdot N \cdot M - c \cdot M \cdot D \\
+                            \frac{dD}{dt} &= k \cdot M - r \cdot D
+                            \end{aligned} $$
+                        </div>
+                        <p>
+                            Donde las constantes del sistema representan:
+                        </p>
+                        <ul class="intro-list" style="margin-bottom: 16px;">
+                            <li>$a$: Tasa de influencia o propagación por contagio del descontento (los neutrales se convencen al interactuar con manifestantes).</li>
+                            <li>$b$: Tasa de retorno pacífico a la calma o neutralidad gracias a la mediación.</li>
+                            <li>$c$: Tasa de eficacia o fuerza del diálogo institucional (los mediadores reducen la movilización de manifestantes).</li>
+                            <li>$k$: Tasa de respuesta del Estado o instituciones para generar y desplegar mediadores según la intensidad del conflicto.</li>
+                            <li>$r$: Tasa de fatiga, desgaste o desmovilización natural de los mediadores con el tiempo.</li>
+                        </ul>
+                        <p>
+                            Este sistema de EDOs acopladas de primer orden se resuelve numéricamente paso a paso mediante **RK4 vectorial**, que evalúa las derivadas del vector de estados en cuatro fases:
+                        </p>
+                        <div class="formula-math">
+                            $$ Y_{n+1} = Y_n + \frac{h}{6} (K_1 + 2K_2 + 2K_3 + K_4) $$
+                        </div>
+                        <p>
+                            donde $Y = [N, M, D]^T$ y $K_j$ son los vectores de pendientes del sistema de ecuaciones diferenciales evaluados recursivamente en las fracciones del paso $h$.
+                        </p>
+                        <p>
+                            <strong>Análisis de Estabilidad:</strong> Al deslizar la eficacia del diálogo ($c$) o la tasa de generación de mediación ($k$) hacia valores bajos, el sistema sufre una inestabilidad no lineal severa, provocando una masificación del conflicto donde los manifestantes activos ($M$) dominan la población. Por el contrario, un valor robusto de $c$ sofoca las protestas rápidamente de manera pacífica, logrando la estabilización.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- CONCLUSIONES -->
+        <section id="section-conclusions" class="section hidden">
+            <div class="section-header">
+                <span class="section-number">08</span>
+                <h2 class="section-title">Conclusiones y Limitaciones</h2>
+                <p class="section-desc">Evaluación del proyecto, rigor metodológico y limitaciones del modelado numérico.</p>
+            </div>
+
+            <div class="sim-main-panel" style="max-width: 1000px; margin: 0 auto;">
+                <div class="panel-card card-content-text">
+                    <h4>Aprendizajes Clave</h4>
+                    <p>
+                        Este proyecto demostró con éxito cómo los métodos numéricos son una herramienta valiosa para modelar dinámicas
+                        complejas e interconectadas en contextos de crisis. A través del código matemático implementado desde cero, se obtuvo:
+                    </p>
+                    <ul class="intro-list">
+                        <li><strong>Estabilidad en Sistemas de Distribución (Escenario A y F):</strong> La dominancia diagonal de las matrices garantiza
+                        la convergencia de los métodos iterativos (Jacobi, Gauss-Seidel, SOR), pero sistemas mal condicionados revelan la inestabilidad
+                        real de los mercados logísticos vulnerables a la desinformación.</li>
+                        <li><strong>Precisión Física en Vaciados y Difusión (Escenario B y G):</strong> Los métodos de aproximación de EDOs revelaron
+                        que Euler simple acumula un error local que sobrestima la velocidad del vaciado, mientras que RK4 proporciona soluciones
+                        muy estables compatibles con análisis dinámicos reales.</li>
+                        <li><strong>Sensibilidad del Gasto Familiar (Escenario C, D y E):</strong> La interpolación por Splines Cúbicos evitó las oscilaciones
+                        anómalas de Lagrange, y los algoritmos de raíces localizaron con total exactitud el día del colapso presupuestario familiar.</li>
+                    </ul>
+
+                    <h4 style="margin-top: 24px;">Limitaciones del Modelo</h4>
+                    <p>
+                        Los modelos matemáticos propuestos son representaciones simplificadas de la realidad física y económica:
+                    </p>
+                    <ul class="intro-list">
+                        <li><strong>Variables Deterministas:</strong> En la realidad, las dinámicas de precios y rumores de pánico tienen un alto componente
+                        estocástico (azar, factores psicológicos imprevistos) que no está completamente representado por ecuaciones algebraicas estables.</li>
+                        <li><strong>Factores Lineales de Acoplamiento:</strong> El Escenario G de dinámica social asume que las interacciones ocurren con leyes de masa simple,
+                        cuando el comportamiento social en red se rige por topologías complejas y propagación no homogénea.</li>
+                    </ul>
+
+                    <h4 style="margin-top: 24px;">Mejoras Propuestas</h4>
+                    <p>
+                        Para futuras iteraciones, se podría enriquecer el software incorporando simulaciones de Montecarlo para modelar fluctuaciones de precios
+                        estocásticas, acoplar la curva spline directamente a la búsqueda de raíces mediante derivación de coeficientes piecewise,
+                        y acoplar el sistema del Escenario A con una optimización por Programación Lineal (Método Símplex) para la minimización real de costos de transporte.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer id="main-footer">
+        <div class="footer-content">
+            <p>Desafío Final — Simulación Numérica en Contexto de Crisis</p>
+            <p class="footer-sub">
+                LU · Jacobi · Gauss-Seidel · SOR · Bisección · Newton-Raphson · Secante · Lagrange · Newton · Splines · Trapecio · Simpson 1/3 y 3/8 · Euler · Heun · RK4
+            </p>
+            <p class="footer-sub text-muted" style="margin-top: 8px;">
+                Implementación Académica de Métodos Numéricos — La Paz, Bolivia
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts de la Aplicación -->
+    <script src="methods.js"></script>
+    <script src="scenarios.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
