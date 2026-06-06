@@ -109,6 +109,8 @@ ProyectoFinal/
 ├── scenarios.js        # Lógica de simulación de los 7 escenarios
 ├── app.js              # Coordinador de eventos e interactividad UI
 ├── INFORME.md          # Informe técnico académico completo
+├── informe.py          # Script de Python que genera el reporte final PDF
+├── informe.pdf         # Reporte académico final en PDF con fórmulas LaTeX
 └── README.md           # Este archivo
 ```
 
