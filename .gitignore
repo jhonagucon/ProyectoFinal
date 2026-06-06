@@ -15,3 +15,10 @@ Desktop.ini
 
 # Local/Log files
 *.log
+
+# Python temp files and formulas folder
+temp_formulas/
+test_*.py
+test_*.png
+modify_informe.py
+__pycache__/

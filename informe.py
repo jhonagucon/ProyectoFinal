@@ -103,67 +103,236 @@ class Informe(FPDF):
         self.set_text_color(*NEGRO)
         self.ln(2)
 
-    # --- Caja de fórmula -----------------------------------------
-    def formula(self, lineas_formula, titulo_formula="Fórmula"):
+    # --- Caja de formula (Courier New para alineacion perfecta) ----
+    def formula(self, lineas_formula):
         """
-        lineas_formula : lista de strings con las líneas de la fórmula.
-        La primera línea se muestra en color teal (título de la expresión).
+        Renderiza formulas con fuente monoespaciada (Courier New).
+        La primera linea es el titulo en negrita color teal.
+        Las demas lineas son el cuerpo en Courier normal.
         """
         self.ln(1)
+        LH = 6          # line height
+        PAD = 4         # padding vertical
+        alto = len(lineas_formula) * LH + PAD * 2
         y0 = self.get_y()
-        # Borde izquierdo teal
+        # Borde izquierdo teal (3mm)
         self.set_fill_color(*TEAL)
-        self.rect(10, y0, 2, len(lineas_formula) * 7 + 8, "F")
-        # Fondo
+        self.rect(10, y0, 3, alto, "F")
+        # Fondo gris claro
         self.set_fill_color(*SLATE_50)
-        self.rect(12, y0, 188, len(lineas_formula) * 7 + 8, "F")
+        self.rect(13, y0, 187, alto, "F")
+        # Linea superior y borde derecho
+        self.set_draw_color(*SLATE_400)
+        self.set_line_width(0.15)
+        self.rect(13, y0, 187, alto)
         # Contenido
-        self.set_xy(15, y0 + 3)
+        self.set_xy(16, y0 + PAD)
         for i, linea in enumerate(lineas_formula):
             if i == 0:
-                self.set_font("Arial", "B", 9.5)
+                self.set_font("Courier", "B", 9)
                 self.set_text_color(*TEAL)
-            else:
-                self.set_font("Arial", "", 9.5)
+            elif linea.strip() == "":
+                self.set_font("Courier", "", 9)
                 self.set_text_color(*SLATE_700)
-            self.cell(0, 7, linea, 0, 1, "L")
+            else:
+                self.set_font("Courier", "", 9)
+                self.set_text_color(*SLATE_700)
+            self.cell(0, LH, linea, 0, 1, "L")
+        self.set_xy(10, y0 + alto)
         self.ln(4)
         self.set_text_color(*NEGRO)
 
-    # --- Pseudocódigo --------------------------------------------
-    def pseudocodigo(self, lineas, titulo="Pseudocódigo"):
+    def formula_math(self, formula_tex, height_mm=12, pad_before=2, pad_after=2):
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        import hashlib
+        from PIL import Image
+        import os
+        
+        if not formula_tex.startswith('$'):
+            formula_tex = f"${formula_tex}$"
+            
+        h = hashlib.md5(formula_tex.encode('utf-8')).hexdigest()
+        temp_dir = "temp_formulas"
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+        img_path = os.path.join(temp_dir, f"formula_{h}.png")
+        
+        if not os.path.exists(img_path):
+            fig, ax = plt.subplots(figsize=(6, 1))
+            fig.patch.set_alpha(0.0)
+            ax.patch.set_alpha(0.0)
+            
+            ax.text(0.5, 0.5, formula_tex, 
+                    horizontalalignment='center', 
+                    verticalalignment='center', 
+                    fontsize=14, 
+                    color='#0f172a')
+            
+            ax.axis('off')
+            plt.savefig(img_path, bbox_inches='tight', pad_inches=0.05, dpi=300, transparent=True)
+            plt.close(fig)
+            
+        with Image.open(img_path) as img:
+            img_w, img_h = img.size
+            aspect = img_w / img_h
+        
+        w_mm = height_mm * aspect
+        if w_mm > 180:
+            w_mm = 180
+            height_mm = w_mm / aspect
+            
+        x_pos = (210 - w_mm) / 2
+        
+        self.ln(pad_before)
+        y_pos = self.get_y()
+        padding_box = 3
+        box_h = height_mm + padding_box * 2
+        
+        self.set_fill_color(*TEAL)
+        self.rect(10, y_pos, 3, box_h, "F")
+        self.set_fill_color(*SLATE_50)
+        self.rect(13, y_pos, 187, box_h, "F")
+        self.set_draw_color(*SLATE_400)
+        self.set_line_width(0.15)
+        self.rect(13, y_pos, 187, box_h)
+        
+        self.image(img_path, x=x_pos, y=y_pos + padding_box, h=height_mm)
+        
+        self.set_y(y_pos + box_h)
+        self.ln(pad_after)
+
+    def formula_matrix(self, A, x, b, height_mm=18, pad_before=2, pad_after=2):
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        import hashlib
+        import json
+        from PIL import Image
+        import os
+        
+        data_str = json.dumps({"A": A, "x": x, "b": b})
+        h = hashlib.md5(data_str.encode('utf-8')).hexdigest()
+        temp_dir = "temp_formulas"
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+        img_path = os.path.join(temp_dir, f"matrix_{h}.png")
+        
+        if not os.path.exists(img_path):
+            n = len(A)
+            fig, ax = plt.subplots(figsize=(6, 1.8 if n == 3 else 1.3))
+            fig.patch.set_alpha(0.0)
+            ax.patch.set_alpha(0.0)
+            ax.axis('off')
+            
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 3)
+            
+            color = '#0f172a'
+            y_center = 1.5
+            y_start = 2.2 if n == 3 else 1.9
+            y_step = 0.7 if n == 3 else 0.8
+            bracket_sz = 42 if n == 3 else 36
+            
+            ax.text(0.5, y_center, '[', fontsize=bracket_sz, va='center', ha='center', color=color)
+            for r in range(n):
+                for c in range(n):
+                    val = f"{A[r][c]:.2f}" if isinstance(A[r][c], (int, float)) else str(A[r][c])
+                    ax.text(1.2 + c * 0.9, y_start - r * y_step, val, fontsize=14, va='center', ha='center', color=color)
+            ax.text(1.2 + n * 0.9 - 0.3, y_center, ']', fontsize=bracket_sz, va='center', ha='center', color=color)
+            
+            x_left = 1.2 + n * 0.9 + 0.3
+            ax.text(x_left, y_center, '[', fontsize=bracket_sz, va='center', ha='center', color=color)
+            for r in range(n):
+                ax.text(x_left + 0.5, y_start - r * y_step, str(x[r]), fontsize=14, va='center', ha='center', color=color)
+            ax.text(x_left + 1.0, y_center, ']', fontsize=bracket_sz, va='center', ha='center', color=color)
+            
+            eq_pos = x_left + 1.6
+            ax.text(eq_pos, y_center, '=', fontsize=20, va='center', ha='center', color=color)
+            
+            b_left = eq_pos + 0.6
+            ax.text(b_left, y_center, '[', fontsize=bracket_sz, va='center', ha='center', color=color)
+            for r in range(n):
+                val_b = f"{b[r]:.2f}" if isinstance(b[r], (int, float)) else str(b[r])
+                ax.text(b_left + 0.5, y_start - r * y_step, val_b, fontsize=14, va='center', ha='center', color=color)
+            ax.text(b_left + 1.0, y_center, ']', fontsize=bracket_sz, va='center', ha='center', color=color)
+            
+            plt.savefig(img_path, bbox_inches='tight', pad_inches=0.05, dpi=300, transparent=True)
+            plt.close(fig)
+            
+        with Image.open(img_path) as img:
+            img_w, img_h = img.size
+            aspect = img_w / img_h
+        
+        w_mm = height_mm * aspect
+        if w_mm > 180:
+            w_mm = 180
+            height_mm = w_mm / aspect
+            
+        x_pos = (210 - w_mm) / 2
+        
+        self.ln(pad_before)
+        y_pos = self.get_y()
+        padding_box = 3
+        box_h = height_mm + padding_box * 2
+        
+        self.set_fill_color(*TEAL)
+        self.rect(10, y_pos, 3, box_h, "F")
+        self.set_fill_color(*SLATE_50)
+        self.rect(13, y_pos, 187, box_h, "F")
+        self.set_draw_color(*SLATE_400)
+        self.set_line_width(0.15)
+        self.rect(13, y_pos, 187, box_h)
+        
+        self.image(img_path, x=x_pos, y=y_pos + padding_box, h=height_mm)
+        
+        self.set_y(y_pos + box_h)
+        self.ln(pad_after)
+
+    # --- Pseudocodigo (Courier New, fondo oscuro) -----------------
+    def pseudocodigo(self, lineas, titulo="Pseudocodigo"):
         self.ln(1)
+        LH = 5.5
         y0 = self.get_y()
-        alto = len(lineas) * 5.5 + 14
-        # Fondo oscuro
+        alto = len(lineas) * LH + 13
+        # Fondo oscuro completo
         self.set_fill_color(*AZUL_OSC)
         self.rect(10, y0, 190, alto, "F")
-        # Barra de título
+        # Barra de titulo azul
         self.set_fill_color(*AZUL_MED)
         self.rect(10, y0, 190, 9, "F")
-        self.set_xy(13, y0 + 1.5)
+        self.set_xy(14, y0 + 1.5)
+        self.set_font("Courier", "B", 8)
+        self.set_text_color(*CYAN)
+        self.cell(12, 6, "{ }", 0, 0)
         self.set_font("Arial", "B", 8)
         self.set_text_color(*BLANCO)
-        self.cell(10, 6, "{ }", 0, 0)
-        self.set_font("Arial", "B", 7.5)
         self.cell(0, 6, titulo, 0, 1)
-        # Líneas de código
-        self.set_font("Arial", "", 8)
+        # Numeros de linea + codigo
+        KEYWORDS = ("ENTRADA","SALIDA","PARA ","SI ","REPETIR","MIENTRAS")
         for i, linea in enumerate(lineas):
-            self.set_xy(14, y0 + 11 + i * 5.5)
-            # número de línea
+            yy = y0 + 11 + i * LH
+            # Numero de linea
+            self.set_xy(14, yy)
+            self.set_font("Courier", "", 8)
             self.set_text_color(*SLATE_400)
-            self.cell(8, 5, f"{i+1:02d}", 0, 0, "R")
-            self.cell(3, 5, "", 0, 0)
-            # contenido
-            color = CYAN if (linea.strip().startswith("ENTRADA") or
-                              linea.strip().startswith("SALIDA") or
-                              linea.strip().startswith("PARA") or
-                              linea.strip().startswith("SI ") or
-                              linea.strip().startswith("REPETIR")) else BLANCO
-            self.set_text_color(*color)
-            self.cell(0, 5, linea, 0, 1)
-        self.ln(alto - len(lineas) * 5.5 - 3)
+            self.cell(9, LH, f"{i+1:02d}", 0, 0, "R")
+            # Separador
+            self.set_text_color(60, 80, 120)
+            self.cell(4, LH, " |", 0, 0)
+            # Codigo
+            es_kw = any(linea.strip().startswith(k) for k in KEYWORDS)
+            es_com = linea.strip().startswith("--") or linea.strip().startswith("#")
+            if es_kw:
+                self.set_text_color(*CYAN)
+            elif es_com:
+                self.set_text_color(100, 160, 100)  # verde comentario
+            else:
+                self.set_text_color(*BLANCO)
+            self.set_font("Courier", "", 8)
+            self.cell(0, LH, linea, 0, 1)
+        self.set_xy(10, y0 + alto)
         self.set_text_color(*NEGRO)
         self.ln(4)
 
@@ -305,6 +474,12 @@ def crear_informe():
         ruta = f"C:\\Windows\\Fonts\\{fname}"
         if os.path.exists(ruta):
             pdf.add_font("Arial", estilo, ruta)
+
+    # Fuente monoespaciada para formulas y pseudocodigo
+    for estilo, fname in [("", "cour.ttf"), ("B", "courbd.ttf")]:
+        ruta = f"C:\\Windows\\Fonts\\{fname}"
+        if os.path.exists(ruta):
+            pdf.add_font("Courier", estilo, ruta)
 
     # ══════════════════════════════════════════════════════════════
     #  PORTADA
@@ -495,116 +670,123 @@ def crear_informe():
     )
 
     pdf.modulo("Modelo matemático general")
-    pdf.formula([
-        "A * x = b",
-        "",
-        "  A en R^(nxn)  =  matriz de conductividades de rutas",
-        "  x en R^n    =  vector de flujos óptimos  (miles de litros/día)",
-        "  b en R^n    =  vector de demanda de cada zona urbana",
-        "",
-        "  Ejemplo con n = 3 (sin bloqueos):",
-        "  +  4.0  -1.0   0.0 + + x_1 +   + 10 +",
-        "  | -1.0   4.0  -1.0 | | x_2 | = | 14 |",
-        "  +  0.0  -1.0   4.0 + + x_3 +   + 10 +",
-    ])
-
-    pdf.modulo("Algoritmo 1: Descomposición LU -- Doolittle")
     pdf.parrafo(
-        "Factoriza A = L*U, donde L es triangular inferior con 1s en la diagonal y U "
-        "es triangular superior. Luego resuelve L*y = b hacia adelante y U*x = y hacia "
-        "atrás. Complejidad total: O(n^3). Método directo (sin iteraciones)."
+        "El balance de flujos en la red se expresa como un sistema de ecuaciones lineales "
+        "donde la conductividad de las rutas y las demandas de consumo determinan los flujos óptimos:"
     )
-    pdf.formula([
-        "Factorización (paso k, elemento (i,j)):",
-        "",
-        "  Elementos de U  (fila i):",
-        "       n-1",
-        "  u_i_j = a_i_j -  SUM  l_i_k * u_k_j        para j = i, i+1, …, n-1",
-        "       k=0",
-        "",
-        "  Elementos de L  (columna i):",
-        "         (        i-1            )",
-        "  l_j_i =  | a_j_i -  SUM  l_j_k * u_k_i | / u_i_i    para j = i+1, …, n-1",
-        "         (       k=0            )",
-        "",
-        "  Sustitución hacia adelante (L*y = b):",
-        "              i-1",
-        "  y_i = b_i -   SUM  l_i_k * y_k",
-        "             k=0",
-        "",
-        "  Sustitución hacia atrás (U*x = y):",
-        "          (       n-1            )",
-        "  x_i =   | y_i -  SUM  u_i_k * x_k  | / u_i_i",
-        "          (      k=i+1           )",
-    ])
+    pdf.formula_math(r"A \cdot \mathbf{x} = \mathbf{b}", height_mm=8)
+    pdf.parrafo(
+        "Donde:\n"
+        "  * A (n x n) representa la matriz de conductividades de rutas de transporte.\n"
+        "  * x (n x 1) representa el vector de flujos óptimos (miles de litros/día).\n"
+        "  * b (n x 1) representa el vector de demanda de cada zona urbana."
+    )
+    pdf.parrafo(
+        "Ejemplo con n = 3 (condiciones normales, sin bloqueos y con demanda de combustible estable):"
+    )
+    pdf.formula_matrix(
+        [[4.0, -1.0, 0.0], [-1.0, 4.0, -1.0], [0.0, -1.0, 4.0]],
+        ["x_1", "x_2", "x_3"],
+        [10, 14, 10],
+        height_mm=18
+    )
+    pdf.parrafo(
+        "La solución exacta de este sistema es:\n"
+        "  * x_1 = 3.5,  x_2 = 4.0,  x_3 = 3.5  [miles de litros/día]"
+    )
+
+    pdf.modulo("Algoritmo 1: Descomposición LU (Doolittle)")
+    pdf.parrafo(
+        "Este algoritmo factoriza la matriz A en el producto de dos matrices, A = L * U, "
+        "donde L es una matriz triangular inferior con 1s en la diagonal principal, "
+        "y U es una matriz triangular superior. Luego, resuelve L * y = b mediante sustitución "
+        "hacia adelante y U * x = y mediante sustitución hacia atrás. Complejidad total: O(n^3)."
+    )
+    pdf.parrafo("1. Elementos de la matriz U (fila i, columnas j >= i):")
+    pdf.formula_math(r"u_{i,j} = a_{i,j} - \sum_{k=0}^{i-1} l_{i,k} u_{k,j} \quad \text{para } j = i, i+1, \dots, n-1", height_mm=9)
+    
+    pdf.parrafo("2. Elementos de la matriz L (columna i, filas j > i):")
+    pdf.formula_math(r"l_{j,i} = \frac{a_{j,i} - \sum_{k=0}^{i-1} l_{j,k} u_{k,i}}{u_{i,i}} \quad \text{para } j = i+1, \dots, n-1", height_mm=12)
+    
+    pdf.parrafo("3. Sustitución hacia adelante (L * y = b):")
+    pdf.formula_math(r"y_i = b_i - \sum_{k=0}^{i-1} l_{i,k} y_k \quad \text{para } i = 0, 1, \dots, n-1", height_mm=9)
+    
+    pdf.parrafo("4. Sustitución hacia atrás (U * x = y):")
+    pdf.formula_math(r"x_i = \frac{y_i - \sum_{k=i+1}^{n-1} u_{i,k} x_k}{u_{i,i}} \quad \text{para } i = n-1, n-2, \dots, 0", height_mm=12)
+
     pdf.pseudocodigo([
-        "ENTRADA: Matriz A (nxn), vector b (n)",
-        "Inicializar L = I,  U = ceros(nxn)",
+        "ENTRADA: Matriz A (n x n), vector b (n)",
+        "Inicializar  L = Identidad(n),   U = Ceros(n x n)",
         "PARA k = 0 hasta n-1:",
-        "    PARA j = k hasta n-1:          -- fila k de U",
-        "        U[k][j] = A[k][j] - SUM(r=0..k-1) L[k][r] * U[r][j]",
-        "    PARA i = k+1 hasta n-1:         -- columna k de L",
-        "        L[i][k] = (A[i][k] - SUM(r=0..k-1) L[i][r]*U[r][k]) / U[k][k]",
-        "-- Sustitución hacia adelante: L*y = b",
+        "    PARA j = k hasta n-1:              -- calcular fila k de U",
+        "        U[k][j] = A[k][j] - SUM(r=0..k-1)  L[k][r] * U[r][j]",
+        "    PARA i = k+1 hasta n-1:            -- calcular columna k de L",
+        "        L[i][k] = ( A[i][k] - SUM(r=0..k-1) L[i][r]*U[r][k] ) / U[k][k]",
+        "-- Fase 1: sustitucion hacia adelante  (L * y = b)",
         "PARA i = 0 hasta n-1:",
-        "    y[i] = b[i] - SUM(k=0..i-1) L[i][k] * y[k]",
-        "-- Sustitución hacia atrás: U*x = y",
-        "PARA i = n-1 hasta 0:",
-        "    x[i] = (y[i] - SUM(k=i+1..n-1) U[i][k] * x[k]) / U[i][i]",
-        "SALIDA: vector solución x",
+        "    y[i] = b[i] - SUM(k=0..i-1)  L[i][k] * y[k]",
+        "-- Fase 2: sustitucion hacia atras  (U * x = y)",
+        "PARA i = n-1 hasta 0:  (orden inverso)",
+        "    x[i] = ( y[i] - SUM(k=i+1..n-1)  U[i][k] * x[k] ) / U[i][i]",
+        "SALIDA: vector solucion  x",
     ])
 
-    pdf.modulo("Algoritmo 2: Jacobi -- Iterativo")
-    pdf.formula([
-        "Fórmula de iteración (componente i en paso k+1):",
-        "",
-        "           1  (        n-1              )",
-        "  x_i(k+^1) = -- | b_i -   SUM   a_i_j * x_j(k) |",
-        "          a_i_i (      j=0, j!=i          )",
-        "",
-        "  Criterio de parada:  ||x(k+^1) - x(k)||inf < eps",
-        "  Condición suficiente: dominancia diagonal estricta  |a_i_i| >  SUM_j!=_i |a_i_j|",
-    ])
+    pdf.modulo("Algoritmo 2: Jacobi (Iterativo)")
+    pdf.parrafo(
+        "Es un método iterativo que calcula cada componente del nuevo vector x en base "
+        "a los valores de la iteración anterior:"
+    )
+    pdf.formula_math(r"x_i^{(k+1)} = \frac{1}{a_{i,i}} \left( b_i - \sum_{j \neq i} a_{i,j} x_j^{(k)} \right)", height_mm=11)
+    
+    pdf.parrafo("El criterio de parada utiliza la norma infinita del cambio entre iteraciones:")
+    pdf.formula_math(r"\|\mathbf{x}^{(k+1)} - \mathbf{x}^{(k)}\|_\infty < \epsilon \quad \text{donde } \|\mathbf{v}\|_\infty = \max_{1 \leq m \leq n} |v_m|", height_mm=9)
+    
+    pdf.parrafo("La condición suficiente para garantizar la convergencia del método es la dominancia diagonal estricta:")
+    pdf.formula_math(r"|a_{i,i}| > \sum_{j \neq i} |a_{i,j}| \quad \text{para todo } i = 0, 1, \dots, n-1", height_mm=9)
 
-    pdf.modulo("Algoritmo 3: Gauss-Seidel -- Iterativo mejorado")
-    pdf.formula([
-        "Usa los valores x_i ya actualizados en la misma iteración:",
-        "",
-        "           1  (   i-1                      n-1              )",
-        "  x_i(k+^1) = -- | b_i - SUM a_i_j*x_j(k+^1)  -   SUM   a_i_j * x_j(k)  |",
-        "          a_i_i (  j=0                    j=i+1              )",
-        "",
-        "  Ventaja: converge aprox. el doble de rápido que Jacobi en matrices D.D.",
-    ])
+    pdf.modulo("Algoritmo 3: Gauss-Seidel (Iterativo mejorado)")
+    pdf.parrafo(
+        "A diferencia de Jacobi, Gauss-Seidel utiliza inmediatamente los valores de x "
+        "ya actualizados en la iteración actual para calcular las siguientes componentes:"
+    )
+    pdf.formula_math(r"x_i^{(k+1)} = \frac{1}{a_{i,i}} \left( b_i - \sum_{j=0}^{i-1} a_{i,j} x_j^{(k+1)} - \sum_{j=i+1}^{n-1} a_{i,j} x_j^{(k)} \right)", height_mm=11)
+    pdf.parrafo(
+        "Esto reduce los requerimientos de memoria y duplica aproximadamente la velocidad de "
+        "convergencia en matrices con dominancia diagonal estricta."
+    )
 
-    pdf.modulo("Algoritmo 4: SOR -- Relajación Sucesiva")
-    pdf.formula([
-        "Extiende Gauss-Seidel con el factor de relajación  omega en (0, 2):",
-        "",
-        "  x_i(k+^1) = (1 - omega)*x_i(k)  +  omega * GS_i(k+^1)",
-        "",
-        "  omega < 1  ->  sub-relajación   (estabiliza sistemas difíciles)",
-        "  omega = 1  ->  Gauss-Seidel puro",
-        "  omega > 1  ->  sobre-relajación  (acelera la convergencia)",
-    ])
+    pdf.modulo("Algoritmo 4: SOR (Relajación Sucesiva Óptima)")
+    pdf.parrafo(
+        "Acelera la convergencia de Gauss-Seidel aplicando un factor de relajación \omega:"
+    )
+    pdf.formula_math(r"x_i^{(k+1)} = (1 - \omega) x_i^{(k)} + \omega x_{i,\text{GS}}^{(k+1)}", height_mm=9)
+    pdf.parrafo(
+        "Donde:\n"
+        "  * \omega < 1: Sub-relajación (estabiliza la convergencia en sistemas difíciles).\n"
+        "  * \omega = 1: Gauss-Seidel puro.\n"
+        "  * \omega > 1: Sobre-relajación (acelera la convergencia en sistemas estables).\n"
+        "El factor de relajación óptimo para matrices tridiagonales se define como:"
+    )
+    pdf.formula_math(r"\omega_{\text{opt}} = \frac{2}{1 + \sqrt{1 - \rho(T_J)^2}} \quad \text{donde } \rho(T_J) \text{ es el radio espectral}", height_mm=12)
 
     pdf.modulo("Algoritmo 5: Gradiente Conjugado")
     pdf.parrafo(
-        "Método iterativo óptimo para matrices simétricas definidas positivas (SDP). "
-        "Converge en a lo sumo n iteraciones en aritmética exacta. Minimiza el error "
-        "en la norma energética ||e||_A = sqrt(eTAe)."
+        "Es un método iterativo de proyección óptimo diseñado para matrices simétricas y "
+        "definidas positivas. Minimiza el error en la norma energética en un espacio de Krylov. "
+        "La inicialización se define como:"
     )
-    pdf.formula([
-        "Paso k del algoritmo de Gradiente Conjugado:",
-        "",
-        "  r_0 = b - A*x_0,   p_0 = r_0",
-        "",
-        "  alfa_k  = (r_kT*r_k) / (p_kT*A*p_k)       <- paso óptimo (line search)",
-        "  x_{k+1} = x_k + alfa_k*p_k               <- actualizar solución",
-        "  r_{k+1} = r_k - alfa_k*A*p_k             <- actualizar residuo",
-        "  beta_k  = (r_{k+1}T*r_{k+1}) / (r_kT*r_k)",
-        "  p_{k+1} = r_{k+1} + beta_k*p_k          <- nueva dirección de búsqueda",
-    ])
+    pdf.formula_math(r"\mathbf{r}_0 = \mathbf{b} - A \mathbf{x}_0, \quad \mathbf{p}_0 = \mathbf{r}_0", height_mm=9)
+    pdf.parrafo(
+        "En cada paso k de la iteración, se calcula la longitud de paso óptima \alpha_k y se actualiza "
+        "el vector solución x_{k+1} y el residuo r_{k+1}:"
+    )
+    pdf.formula_math(r"\alpha_k = \frac{\mathbf{r}_k^T \mathbf{r}_k}{\mathbf{p}_k^T A \mathbf{p}_k}, \quad \mathbf{x}_{k+1} = \mathbf{x}_k + \alpha_k \mathbf{p}_k, \quad \mathbf{r}_{k+1} = \mathbf{r}_k - \alpha_k A \mathbf{p}_k", height_mm=11)
+    pdf.parrafo(
+        "Posteriormente, se actualiza la dirección de búsqueda p_{k+1} utilizando el coeficiente \beta_k de Fletcher-Reeves:"
+    )
+    pdf.formula_math(r"\beta_k = \frac{\mathbf{r}_{k+1}^T \mathbf{r}_{k+1}}{\mathbf{r}_k^T \mathbf{r}_k}, \quad \mathbf{p}_{k+1} = \mathbf{r}_{k+1} + \beta_k \mathbf{p}_k", height_mm=11)
+    pdf.parrafo("El proceso se detiene cuando la norma L2 del residuo es menor a la tolerancia \epsilon:")
+    pdf.formula_math(r"\|\mathbf{r}_{k+1}\|_2 < \epsilon", height_mm=8)
 
     # Gráfico convergencia
     errores = [1.0, 0.38, 0.14, 0.052, 0.019, 0.007, 0.0025, 0.0009, 0.0003, 0.0001]
@@ -634,57 +816,40 @@ def crear_informe():
         "el consumo real, que se eleva por un factor de pánico p > 0 cuando la población "
         "acumula más combustible del necesario."
     )
-    pdf.formula([
-        "EDO de primer orden -- Balance de reserva R(t):",
-        "",
-        "  dR        ",
-        "  -- = Q_ent - Q_con * (1 + p)",
-        "  dt        ",
-        "",
-        "  R(t)  = reserva de combustible al tiempo t  [miles de litros]",
-        "  Q_ent = caudal diario de reposición  [parámetro controlable]",
-        "  Q_con = tasa base de consumo diario",
-        "  p     = factor de pánico social  (p = 0: normalidad, p = 0.5: pánico)",
-        "  R(0)  = R_0  (condición inicial)",
-    ])
+    pdf.formula_math(r"\frac{dR}{dt} = Q_{\text{ent}} - Q_{\text{con}} \cdot (1 + p)", height_mm=10)
+    pdf.parrafo(
+        "Donde:\n"
+        "  * R(t) = volumen acumulado en el tanque en el tiempo t (miles de litros).\n"
+        "  * Q_ent = caudal diario de reposición o reabastecimiento.\n"
+        "  * Q_con = tasa base de consumo de la población.\n"
+        "  * p = factor de pánico social (0 para normalidad, >0 representa acumulación compulsiva).\n"
+        "  * R(0) = R_0 es la reserva inicial al día t = 0."
+    )
 
-    pdf.modulo("Algoritmo 1: Euler Explícito  (1er orden)")
-    pdf.formula([
-        "Diferencia hacia adelante de la derivada:",
-        "",
-        "  R_{n+1} = R_n + h * f(t_n, R_n)",
-        "",
-        "  donde  f(t, R) = Q_ent - Q_con * (1 + p)",
-        "  y      h = paso de tiempo = 1 día",
-        "",
-        "  Error de truncamiento local:  O(h^2)",
-        "  Error global acumulado:        O(h)",
-    ])
+    pdf.modulo("Algoritmo 1: Euler Explícito (1er orden)")
+    pdf.parrafo("Aproxima la derivada temporal mediante diferencias hacia adelante:")
+    pdf.formula_math(r"R_{n+1} = R_n + h \cdot f(t_n, R_n)", height_mm=9)
+    pdf.parrafo(
+        "Donde:\n"
+        "  * f(t, R) = Q_ent - Q_con * (1 + p)\n"
+        "  * h = paso de tiempo (1 día en nuestra simulación).\n"
+        "El error de truncamiento local es O(h^2), y el error global acumulado es O(h)."
+    )
 
-    pdf.modulo("Algoritmo 2: Heun -- Predictor-Corrector  (2do orden)")
-    pdf.formula([
-        "Mejora Euler promediando las pendientes al inicio y al final:",
-        "",
-        "  R*_{n+1} = R_n + h * f(t_n, R_n)                    <- Predictor (Euler)",
-        "",
-        "  R_{n+1}  = R_n + (h/2) * [f(t_n, R_n) + f(t_{n+1}, R*_{n+1})]  <- Corrector",
-        "",
-        "  Error global:  O(h^2)",
-    ])
+    pdf.modulo("Algoritmo 2: Heun -- Predictor-Corrector (2do orden)")
+    pdf.parrafo("Promedia la pendiente al inicio y al final del intervalo para mayor precisión:")
+    pdf.formula_math(r"\tilde{R}_{n+1} = R_n + h \cdot f(t_n, R_n) \quad (\text{Predictor})", height_mm=9)
+    pdf.formula_math(r"R_{n+1} = R_n + \frac{h}{2} \left[ f(t_n, R_n) + f(t_{n+1}, \tilde{R}_{n+1}) \right] \quad (\text{Corrector})", height_mm=11)
+    pdf.parrafo("Este método reduce el error global acumulado a un orden O(h^2).")
 
-    pdf.modulo("Algoritmo 3: Runge-Kutta 4to Orden (RK4)  -- El más utilizado")
-    pdf.formula([
-        "Cuatro evaluaciones de f ponderadas con coeficientes de Simpson:",
-        "",
-        "  k_1 = h * f(t_n,       R_n          )",
-        "  k_2 = h * f(t_n + h/2, R_n + k_1/2  )",
-        "  k_3 = h * f(t_n + h/2, R_n + k_2/2  )",
-        "  k_4 = h * f(t_n + h,   R_n + k_3    )",
-        "",
-        "  R_{n+1} = R_n + (1/6)*(k_1 + 2k_2 + 2k_3 + k_4)",
-        "",
-        "  Error global:  O(h^4)   <-  excelente precisión con paso h razonable",
-    ])
+    pdf.modulo("Algoritmo 3: Runge-Kutta de 4to Orden (RK4)")
+    pdf.parrafo(
+        "Utiliza cuatro evaluaciones de la derivada ponderadas mediante los coeficientes de "
+        "la regla de Simpson para lograr un error global de orden O(h^4):"
+    )
+    pdf.formula_math(r"k_1 = h \cdot f(t_n, R_n), \quad k_2 = h \cdot f\left(t_n + \frac{h}{2}, R_n + \frac{k_1}{2}\right)", height_mm=11)
+    pdf.formula_math(r"k_3 = h \cdot f\left(t_n + \frac{h}{2}, R_n + \frac{k_2}{2}\right), \quad k_4 = h \cdot f(t_n + h, R_n + k_3)", height_mm=11)
+    pdf.formula_math(r"R_{n+1} = R_n + \frac{1}{6} (k_1 + 2k_2 + 2k_3 + k_4)", height_mm=9)
     pdf.grafica_barras(
         "Reserva al día 15 -- comparativa por método  (p=0.3, Q_ent=80, Q_con=100)",
         ["Euler", "Heun", "RK4 (referencia)"],
@@ -722,49 +887,29 @@ def crear_informe():
     )
 
     pdf.modulo("Algoritmo 1: Polinomio de Lagrange")
-    pdf.formula([
-        "P(t) =  SUM_i  y_i * L_i(t)",
-        "",
-        "  Polinomio base de Lagrange:",
-        "",
-        "          n-1   (t - t_j)",
-        "  L_i(t) =  PROD  ----------        (producto para j != i)",
-        "          j!=i  (t_i - t_j)",
-        "",
-        "  Propiedades:  L_i(t_i) = 1,   L_i(t_j) = 0  para j != i",
-        "",
-        "  ⚠ Limitación: fenómeno de Runge -- oscilaciones en los extremos",
-    ])
+    pdf.parrafo("Construye el polinomio interpolador directamente como una combinación lineal de polinomios base:")
+    pdf.formula_math(r"P(t) = \sum_{i=0}^{n-1} y_i \cdot L_i(t)", height_mm=9)
+    pdf.parrafo("Donde los polinomios base L_i(t) están dados por el producto:")
+    pdf.formula_math(r"L_i(t) = \prod_{j \neq i} \frac{t - t_j}{t_i - t_j} \quad \text{para } j = 0, 1, \dots, n-1", height_mm=12)
+    pdf.parrafo("Limitación: El polinomio global sufre del Fenómeno de Runge, produciendo oscilaciones severas en los extremos del intervalo cuando el número de puntos es elevado.")
 
     pdf.modulo("Algoritmo 2: Polinomio de Newton -- Diferencias Divididas")
-    pdf.formula([
-        "P(t) = f[t_0] + f[t_0,t_1]*(t-t_0) + f[t_0,t_1,t_2]*(t-t_0)(t-t_1) + …",
-        "",
-        "  Tabla de diferencias divididas:",
-        "",
-        "  f[t_i, t_i₊_1] = (f[t_i₊_1] - f[t_i]) / (t_i₊_1 - t_i)              <- orden 1",
-        "",
-        "  f[t_i,…,t_i₊_k] = (f[t_i₊_1,…,t_i₊_k] - f[t_i,…,t_i₊_k₋_1]) / (t_i₊_k - t_i)  <- orden k",
-        "",
-        "  Ventaja: agregar un nuevo nodo solo requiere una columna adicional.",
-    ])
+    pdf.parrafo("Expresa el polinomio interpolador en forma jerárquica sumando coeficientes de diferencias divididas:")
+    pdf.formula_math(r"P(t) = f[t_0] + \sum_{i=1}^{n-1} f[t_0, t_1, \dots, t_i] \prod_{j=0}^{i-1} (t - t_j)", height_mm=11)
+    pdf.parrafo("Las diferencias divididas de primer orden y orden k se calculan de manera recurrente:")
+    pdf.formula_math(r"f[t_i, t_{i+1}] = \frac{f(t_{i+1}) - f(t_i)}{t_{i+1} - t_i}", height_mm=11)
+    pdf.formula_math(r"f[t_i, \dots, t_{i+k}] = \frac{f[t_{i+1}, \dots, t_{i+k}] - f[t_i, \dots, t_{i+k-1}]}{t_{i+k} - t_i}", height_mm=12)
+    pdf.parrafo("Ventaja: Agregar un nuevo punto de interpolación no requiere recalcular todo desde el inicio; basta con calcular una nueva fila en la tabla de diferencias divididas.")
 
-    pdf.modulo("Algoritmo 3: Splines Cúbicos Naturales  (el más estable)")
-    pdf.formula([
-        "En cada subintervalo [t_i, t_i₊_1] se ajusta un cúbico:",
-        "",
-        "  S_i(t) = a_i + b_i(t-t_i) + c_i(t-t_i)^2 + d_i(t-t_i)^3",
-        "",
-        "  Sistema tridiagonal para los momentos de curvatura c_i:",
-        "",
-        "  h_i₋_1*c_i₋_1 + 2(h_i₋_1+h_i)*c_i + h_i*c_i₊_1 = 3*(Deltay_i/h_i - Deltay_i₋_1/h_i₋_1)",
-        "",
-        "  Coeficientes restantes:",
-        "    b_i = Deltay_i/h_i - h_i*(2c_i + c_i₊_1)/3",
-        "    d_i = (c_i₊_1 - c_i) / (3*h_i)",
-        "",
-        "  Condición natural:  S''(t_0) = S''(t_n) = 0",
-    ])
+    pdf.modulo("Algoritmo 3: Splines Cúbicos Naturales")
+    pdf.parrafo("Ajusta polinomios cúbicos continuos y diferenciables en cada subintervalo [t_i, t_{i+1}]:")
+    pdf.formula_math(r"S_i(t) = a_i + b_i(t-t_i) + c_i(t-t_i)^2 + d_i(t-t_i)^3", height_mm=9)
+    pdf.parrafo("Los coeficientes c_i se determinan resolviendo el siguiente sistema tridiagonal de momentos de curvatura:")
+    pdf.formula_math(r"h_{i-1} c_{i-1} + 2(h_{i-1} + h_i) c_i + h_i c_{i+1} = 3 \left( \frac{\Delta y_i}{h_i} - \frac{\Delta y_{i-1}}{h_{i-1}} \right)", height_mm=11)
+    pdf.parrafo("Una vez calculados los c_i, los coeficientes b_i y d_i se obtienen directamente:")
+    pdf.formula_math(r"b_i = \frac{\Delta y_i}{h_i} - \frac{h_i(2c_i + c_{i+1})}{3}, \quad d_i = \frac{c_{i+1} - c_i}{3h_i}", height_mm=11)
+    pdf.parrafo("Para cerrar el sistema tridiagonal se aplica la condición natural de curvatura nula en las fronteras:")
+    pdf.formula_math(r"S''(t_0) = S''(t_n) = 0 \Rightarrow c_0 = c_n = 0", height_mm=8)
     pdf.grafica_barras(
         "Precio interpolado en t = 12 días -- comparativa de métodos",
         ["Lagrange", "Newton (DD)", "Spline Cúbico"],
@@ -783,46 +928,27 @@ def crear_informe():
         "numéricamente esa curva. Se compara con el gasto base (precios estables) "
         "para obtener la pérdida de poder adquisitivo."
     )
-    pdf.formula([
-        "                   30",
-        "  Gasto total  =   INT  P(t) dt",
-        "                   0",
-        "",
-        "  Pérdida poder adquisitivo [%] = (Gasto_real - Gasto_base) / Gasto_base x 100",
-    ])
+    pdf.parrafo("El gasto total de la canasta alimentaria se calcula integrando la función continua de precios P(t) a lo largo del mes:")
+    pdf.formula_math(r"\text{Gasto Total} = \int_{0}^{30} P(t) \, dt", height_mm=10)
+    pdf.parrafo("La pérdida del poder adquisitivo porcentual se mide respecto a una línea base de precios estables:")
+    pdf.formula_math(r"\text{Pérdida Poder Adquisitivo (\%)} = \frac{\text{Gasto}_{\text{real}} - \text{Gasto}_{\text{base}}}{\text{Gasto}_{\text{base}}} \times 100", height_mm=11)
 
     pdf.modulo("Algoritmo 1: Regla del Trapecio Compuesta")
-    pdf.formula([
-        "  h = (b - a) / n        (paso de integración)",
-        "",
-        "               h  ⎡              n-1                    ⎤",
-        "  T(h)  =       -- ⎢ f(x_0) + 2*  SUM  f(x_i) + f(x_n)  ⎥",
-        "               2  ⎣             i=1                    ⎦",
-        "",
-        "  Error de truncamiento:  -(b-a)*h^2/12 * f''(xi)   ->   O(h^2)",
-    ])
+    pdf.parrafo("Aproxima el área bajo la curva mediante una suma de áreas de trapecios sobre subintervalos de ancho h:")
+    pdf.formula_math(r"T(h) = \frac{h}{2} \left[ f(x_0) + 2 \sum_{i=1}^{n-1} f(x_i) + f(x_n) \right] \quad \text{donde } h = \frac{b-a}{n}", height_mm=11)
+    pdf.parrafo("El error de truncamiento global es de orden O(h^2):")
+    pdf.formula_math(r"E_T = -\frac{(b-a)h^2}{12} f''(\xi) \quad (\xi \in [a, b])", height_mm=11)
 
-    pdf.modulo("Algoritmo 2: Regla de Simpson 1/3 Compuesta  (n par)")
-    pdf.formula([
-        "  Pesos:  1, 4, 2, 4, 2, …, 4, 1",
-        "",
-        "               h  ⎡                       n/2-1                  n/2            ⎤",
-        "  S_1_3(h) =     -- ⎢ f(x_0) + 4*  SUM   f(x_2_k₋_1) + 2*  SUM  f(x_2_k) + f(x_n) ⎥",
-        "               3  ⎣            k=1                   k=1                  ⎦",
-        "",
-        "  Error de truncamiento:  -(b-a)*h^4/180 * f(^4)(xi)   ->   O(h^4)",
-    ])
+    pdf.modulo("Algoritmo 2: Regla de Simpson 1/3 Compuesta (n par)")
+    pdf.parrafo("Aproxima la función mediante parábolas de segundo orden en pares de intervalos adyacentes:")
+    pdf.formula_math(r"S_{1/3}(h) = \frac{h}{3} \left[ f(x_0) + 4 \sum_{k=1}^{n/2} f(x_{2k-1}) + 2 \sum_{k=1}^{n/2-1} f(x_{2k}) + f(x_n) \right]", height_mm=11)
+    pdf.parrafo("El error de truncamiento global es de orden O(h^4), ofreciendo mucha más precisión:")
+    pdf.formula_math(r"E_S = -\frac{(b-a)h^4}{180} f^{(4)}(\xi)", height_mm=11)
 
-    pdf.modulo("Algoritmo 3: Regla de Simpson 3/8 Compuesta  (n múltiplo de 3)")
-    pdf.formula([
-        "  Pesos:  1, 3, 3, 2, 3, 3, 2, …, 3, 3, 1",
-        "",
-        "                3h  ⎡                                                    ⎤",
-        "  S_3_8(h) =      --- ⎢ f(x_0) + 3f(x_1) + 3f(x_2) + 2f(x_3) + … + f(x_n)  ⎥",
-        "                 8  ⎣                                                    ⎦",
-        "",
-        "  Error de truncamiento:   O(h^4)  (misma precisión que Simpson 1/3)",
-    ])
+    pdf.modulo("Algoritmo 3: Regla de Simpson 3/8 Compuesta (n múltiplo de 3)")
+    pdf.parrafo("Ajusta polinomios de tercer grado (cúbicos) sobre grupos de tres subintervalos:")
+    pdf.formula_math(r"S_{3/8}(h) = \frac{3h}{8} \left[ f(x_0) + 3 \sum_{i \neq 3k} f(x_i) + 2 \sum_{k=1}^{n/3-1} f(x_{3k}) + f(x_n) \right]", height_mm=11)
+    pdf.parrafo("El error de truncamiento global es del mismo orden de precisión, O(h^4).")
     pdf.grafica_barras(
         "Gasto mensual acumulado estimado -- comparativa por método  [Bs]",
         ["Trapecio (n=30)", "Simpson 1/3 (n=30)", "Simpson 3/8 (n=30)", "Gasto base estable"],
@@ -853,57 +979,34 @@ def crear_informe():
         "reposición que evita el colapso de reservas y el parámetro de transición "
         "hacia inestabilidad social."
     )
-    pdf.formula([
-        "Problema 1 -- Umbral Financiero Familiar:",
-        "  f(t) = A*ekᵗ - B*t - C = 0",
-        "",
-        "Problema 2 -- Caudal Crítico de Reposición:",
-        "  g(Q) = ln(Q) - Q/50 - 2 = 0",
-        "",
-        "Problema 3 -- Bifurcación de Estabilidad Social:",
-        "  h(x) = x^3 - x - 1 = 0",
-    ])
+    pdf.parrafo("Se definen tres funciones no lineales que representan los umbrales críticos del sistema:")
+    pdf.parrafo("1. Umbral Financiero Familiar (gasto familiar vs ingresos):")
+    pdf.formula_math(r"f(t) = A \cdot e^{kt} - B \cdot t - C = 0", height_mm=8)
+    pdf.parrafo("2. Caudal Crítico de Reposición (colapso de depósitos de reservas):")
+    pdf.formula_math(r"g(Q) = \ln(Q) - \frac{Q}{50} - 2 = 0", height_mm=8)
+    pdf.parrafo("3. Bifurcación de Estabilidad Social (transición hacia el desorden):")
+    pdf.formula_math(r"h(x) = x^3 - x - 1 = 0", height_mm=8)
 
     pdf.modulo("Algoritmo 1: Bisección")
-    pdf.formula([
-        "Dado [a, b] con f(a)*f(b) < 0  (teorema del valor intermedio):",
-        "",
-        "  c = (a + b) / 2",
-        "  Si f(a)*f(c) < 0  ->  b = c   (raíz en [a, c])",
-        "  Si no             ->  a = c   (raíz en [c, b])",
-        "  Repetir hasta  |b - a| < eps",
-        "",
-        "  Convergencia: lineal   |e_k| <= (b - a) / 2k",
-    ])
+    pdf.parrafo("Basado en el Teorema del Valor Intermedio, divide sistemáticamente a la mitad un intervalo [a, b] donde f(a) * f(b) < 0:")
+    pdf.formula_math(r"c = \frac{a+b}{2}", height_mm=9)
+    pdf.parrafo("En cada paso, se evalúa f(c) y se redefine el intervalo activo: si f(a)*f(c) < 0 la raíz está en [a, c] (b = c), de lo contrario está en [c, b] (a = c).")
+    pdf.parrafo("Su velocidad de convergencia es lineal y garantiza la acotación del error absoluto:")
+    pdf.formula_math(r"|e_k| \leq \frac{b-a}{2^k}", height_mm=10)
 
     pdf.modulo("Algoritmo 2: Newton-Raphson")
-    pdf.formula([
-        "                  f(x_n)",
-        "  x_{n+1} = x_n - ------",
-        "                  f'(x_n)",
-        "",
-        "  Derivadas analíticas de cada ecuación:",
-        "    f'(t) = A*k*ekᵗ - B",
-        "    g'(Q) = 1/Q - 1/50",
-        "    h'(x) = 3x^2 - 1",
-        "",
-        "  Convergencia: cuadrática  |e_k₊_1| ~= C * |e_k|^2  (muy rápido cerca de la raíz)",
-        "  Riesgo: puede diverger si x_0 está lejos o si f'(x_n) ~= 0",
-    ])
+    pdf.parrafo("Es un método abierto que utiliza la pendiente de la recta tangente para encontrar la raíz rápidamente:")
+    pdf.formula_math(r"x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}", height_mm=10)
+    pdf.parrafo("Las derivadas analíticas para las tres funciones estudiadas son:")
+    pdf.formula_math(r"f'(t) = A \cdot k \cdot e^{kt} - B, \quad g'(Q) = \frac{1}{Q} - \frac{1}{50}, \quad h'(x) = 3x^2 - 1", height_mm=10)
+    pdf.parrafo("La velocidad de convergencia es cuadrática, |e_{k+1}| \approx C \cdot |e_k|^2, aunque requiere un buen punto inicial x_0 para evitar la divergencia.")
 
     pdf.modulo("Algoritmo 3: Secante")
-    pdf.formula([
-        "  No requiere calcular f'(x) -- usa diferencia finita como aproximación:",
-        "",
-        "                       f(x_n) * (x_n - x_{n-1})",
-        "  x_{n+1} = x_n -  ------------------------------",
-        "                    f(x_n) - f(x_{n-1})",
-        "",
-        "  Necesita dos puntos iniciales x_0 y x_1",
-        "  Convergencia: superlineal,  orden  p = (1 + sqrt5)/2 ~= 1.618  (número áureo)",
-    ])
+    pdf.parrafo("Aproxima la derivada de Newton-Raphson mediante diferencias finitas hacia atrás, evitando el cálculo analítico de f'(x):")
+    pdf.formula_math(r"x_{n+1} = x_n - \frac{f(x_n) \cdot (x_n - x_{n-1})}{f(x_n) - f(x_{n-1})}", height_mm=11)
+    pdf.parrafo("Requiere dos aproximaciones iniciales x_0 y x_1, y converge con una tasa superlineal basada en la proporción áurea (orden p \approx 1.618).")
     pdf.grafica_barras(
-        "Iteraciones necesarias hasta convergencia  (eps = 10^-⁶)",
+        "Iteraciones necesarias hasta convergencia  (eps = 10^-6)",
         ["Bisección", "Newton-Raphson", "Secante"],
         [21, 5, 7],
         "iter."
@@ -930,22 +1033,14 @@ def crear_informe():
         "en b). Se analiza cómo un sistema con número de condición alto amplifica "
         "enormemente ese pequeño error, demostrando matemáticamente el efecto del pánico."
     )
-    pdf.formula([
-        "Sistema original:   A * x = b",
-        "Sistema perturbado: A * x̃ = b + deltab   (deltab = 5% de b)",
-        "",
-        "Número de condición de la matriz A:",
-        "",
-        "  cond(A) = ||A||inf * ||A^(-1)||inf",
-        "",
-        "  ||A||inf = max_i  SUM_j |a_i_j|     (máxima suma de fila en valor absoluto)",
-        "",
-        "Cota del error relativo amplificado:",
-        "",
-        "  ||deltax||           ||deltab||",
-        "  -----  <=  cond(A) * -----",
-        "  ||x||             ||b||",
-    ])
+    pdf.parrafo("Consideramos el sistema original y el sistema con perturbación en su vector de carga (demandas):")
+    pdf.formula_math(r"A \cdot \mathbf{x} = \mathbf{b}, \quad A \cdot \tilde{\mathbf{x}} = \mathbf{b} + \Delta \mathbf{b}", height_mm=8)
+    pdf.parrafo("El número de condición mide la sensibilidad del sistema y se define en la norma infinita como:")
+    pdf.formula_math(r"\text{cond}(A) = \|A\|_\infty \cdot \|A^{-1}\|_\infty", height_mm=9)
+    pdf.parrafo("Donde la norma infinita de la matriz es la máxima suma de los elementos de sus filas en valor absoluto:")
+    pdf.formula_math(r"\|A\|_\infty = \max_{1 \leq i \leq n} \sum_{j=1}^{n} |a_{i,j}|", height_mm=11)
+    pdf.parrafo("La cota superior del error relativo en la solución depende directamente de la perturbación del vector b:")
+    pdf.formula_math(r"\frac{\|\Delta \mathbf{x}\|_\infty}{\|\mathbf{x}\|_\infty} \leq \text{cond}(A) \cdot \frac{\|\Delta \mathbf{b}\|_\infty}{\|\mathbf{b}\|_\infty}", height_mm=12)
 
     pdf.modulo("Algoritmo: Inversión por Gauss-Jordan para calcular A^(-1)")
     pdf.pseudocodigo([
@@ -955,20 +1050,33 @@ def crear_informe():
         "    Dividir fila k entre M[k][k]         <- normalizar pivote",
         "    PARA cada fila i != k:",
         "        M[i] = M[i] - M[i][k] * M[k]    <- eliminar columna k",
-        "SALIDA: A^(-1) = mitad derecha de M  (columnas n … 2n-1)",
+        "SALIDA: A^(-1) = mitad derecha de M  (columnas n ... 2n-1)",
     ])
 
-    pdf.formula([
-        "Ejemplo ilustrativo -- Matriz muy mal condicionada  (cond(A) ~= 200):",
-        "",
-        "  A = | 1.00   0.99 |    b = | 1.99 |   ->   x = | 1 |",
-        "      | 0.99   0.98 |        | 1.97 |            | 1 |",
-        "",
-        "  Con perturbación  b' = b + [0.01, 0.00]T   (delta ~= 0.5 %):",
-        "",
-        "  x̃ = | 101 |   ->   error del 10 000 %  amplificado por cond(A)",
-        "      | -99 |",
-    ])
+    pdf.modulo("Ejemplo de perturbación extrema (cond(A) \approx 200)")
+    pdf.parrafo(
+        "Si definimos un sistema de ecuaciones de 2x2 mal condicionado, donde la solución exacta original es unitaria:"
+    )
+    pdf.formula_matrix(
+        [[1.00, 0.99], [0.99, 0.98]],
+        ["x_1", "x_2"],
+        [1.99, 1.97],
+        height_mm=13
+    )
+    pdf.parrafo(
+        "Al introducir una perturbación insignificante de sólo +0.01 en la demanda de la primera zona "
+        "(cambiando el vector b a [2.00, 1.97]^T, un cambio del 0.5%):"
+    )
+    pdf.formula_matrix(
+        [[1.00, 0.99], [0.99, 0.98]],
+        ["\\tilde{x}_1", "\\tilde{x}_2"],
+        [2.00, 1.97],
+        height_mm=13
+    )
+    pdf.parrafo(
+        "La solución cambia dramáticamente a x_tilde = [101, -99]^T. Esto representa un error del 10,000% "
+        "en las variables calculadas, evidenciando una amplificación catastrófica del error residual inducida por cond(A)."
+    )
     pdf.grafica_barras(
         "Solución normal vs. perturbada (+5 % en demanda)  --  cond(A) alto",
         ["Zona A (normal)", "Zona A (perturbada)", "Zona B (normal)", "Zona B (perturbada)"],
@@ -986,35 +1094,28 @@ def crear_informe():
         "activos (M) y Mediadores de diálogo (D). Los parámetros controlan la velocidad "
         "de radicalización, la eficacia de la mediación y el agotamiento natural."
     )
-    pdf.formula([
-        "Sistema de EDOs acoplado (3 ecuaciones simultáneas):",
-        "",
-        "  dN/dt = -alfa*N*M + gamma*M + mu*D",
-        "  dM/dt =  alfa*N*M - gamma*M - beta*M*D",
-        "  dD/dt =  beta*M*D - mu*D",
-        "",
-        "  alfa = tasa de radicalización   (Neutrales -> Manifestantes por contacto)",
-        "  gamma = tasa de agotamiento      (Manifestantes regresan a Neutrales)",
-        "  beta = eficacia de mediación    (Manifestantes persuadidos por Mediadores)",
-        "  mu = tasa de retiro de Mediadores",
-        "",
-        "  Ley de conservación:  N(t) + M(t) + D(t) = N_total = constante",
-    ])
+    pdf.parrafo("El comportamiento del conflicto social se modela a través de un sistema de tres EDOs acopladas:")
+    pdf.formula_math(r"\frac{dN}{dt} = -\alpha N M + \gamma M + \mu D", height_mm=9)
+    pdf.formula_math(r"\frac{dM}{dt} = \alpha N M - \gamma M - \beta M D", height_mm=9)
+    pdf.formula_math(r"\frac{dD}{dt} = \beta M D - \mu D", height_mm=9)
+    pdf.parrafo(
+        "Donde:\n"
+        "  * \\alpha = tasa de radicalización (Neutrales -> Manifestantes por influencia social).\n"
+        "  * \\gamma = tasa de agotamiento (Manifestantes que vuelven al estado de calma).\n"
+        "  * \\beta = eficacia del diálogo (Manifestantes persuadidos por Mediadores hacia el diálogo).\n"
+        "  * \\mu = tasa de desmovilización voluntaria de Mediadores.\n"
+        "Se cumple la ley de conservación de masa de la población total:"
+    )
+    pdf.formula_math(r"N(t) + M(t) + D(t) = N_{\text{total}} \quad (\text{constante})", height_mm=8)
 
     pdf.modulo("Algoritmo: RK4 Vectorial para Sistemas de EDOs")
-    pdf.formula([
-        "Vector de estado:   u = [N, M, D]T",
-        "Función del sistema: F(t, u) = [dN/dt, dM/dt, dD/dt]T",
-        "",
-        "  k_1 = h * F(t_n,       u_n          )",
-        "  k_2 = h * F(t_n + h/2, u_n + k_1/2  )",
-        "  k_3 = h * F(t_n + h/2, u_n + k_2/2  )",
-        "  k_4 = h * F(t_n + h,   u_n + k_3    )",
-        "",
-        "  u_{n+1} = u_n + (1/6)*(k_1 + 2k_2 + 2k_3 + k_4)",
-        "",
-        "  Nota: k_1, k_2, k_3, k_4 son vectores de dimensión 3 en este sistema.",
-    ])
+    pdf.parrafo("Agrupamos las variables del sistema en forma vectorial para generalizar el solucionador RK4:")
+    pdf.formula_math(r"\mathbf{u} = [N, M, D]^T, \quad \mathbf{F}(t, \mathbf{u}) = [-\alpha NM + \gamma M + \mu D, \ \alpha NM - \gamma M - \beta MD, \ \beta MD - \mu D]^T", height_mm=14)
+    pdf.parrafo("Las evaluaciones de pendiente vectorial se definen de manera análoga al caso escalar:")
+    pdf.formula_math(r"\mathbf{k}_1 = h \mathbf{F}(t_n, \mathbf{u}_n), \quad \mathbf{k}_2 = h \mathbf{F}\left(t_n + \frac{h}{2}, \mathbf{u}_n + \frac{\mathbf{k}_1}{2}\right)", height_mm=11)
+    pdf.formula_math(r"\mathbf{k}_3 = h \mathbf{F}\left(t_n + \frac{h}{2}, \mathbf{u}_n + \frac{\mathbf{k}_2}{2}\right), \quad \mathbf{k}_4 = h \mathbf{F}(t_n + h, \mathbf{u}_n + \mathbf{k}_3)", height_mm=11)
+    pdf.formula_math(r"\mathbf{u}_{n+1} = \mathbf{u}_n + \frac{1}{6} (\mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4)", height_mm=9)
+    pdf.parrafo("Donde k_1, k_2, k_3, k_4 y u son vectores de dimensión 3.")
     pdf.grafica_barras(
         "Evolución al día 30  (N_0=1000, M_0=50, D_0=10)",
         ["Neutrales N(30)", "Manifestantes M(30)", "Mediadores D(30)"],
